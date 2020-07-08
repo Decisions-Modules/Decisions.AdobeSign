@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdobeSign.ClassLibrary", "AdobeSign.ClassLibrary\AdobeSign.ClassLibrary.csproj", "{415C223C-053B-42E7-BCF9-DC56FB7917B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdobeSign.UnitTests", "AdobeSign.UnitTests\AdobeSign.UnitTests.csproj", "{98919CE5-1F32-47E9-A8CC-1582474816FA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{415C223C-053B-42E7-BCF9-DC56FB7917B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{415C223C-053B-42E7-BCF9-DC56FB7917B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{415C223C-053B-42E7-BCF9-DC56FB7917B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{415C223C-053B-42E7-BCF9-DC56FB7917B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98919CE5-1F32-47E9-A8CC-1582474816FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98919CE5-1F32-47E9-A8CC-1582474816FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98919CE5-1F32-47E9-A8CC-1582474816FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98919CE5-1F32-47E9-A8CC-1582474816FA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7F097F2B-EE89-4EF0-B753-63F54A6E7D00}
+	EndGlobalSection
+EndGlobal
