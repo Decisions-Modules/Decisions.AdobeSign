@@ -5,7 +5,10 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdobeSign.ClassLibrary", "AdobeSign.ClassLibrary\AdobeSign.ClassLibrary.csproj", "{415C223C-053B-42E7-BCF9-DC56FB7917B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdobeSign.UnitTests", "AdobeSign.UnitTests\AdobeSign.UnitTests.csproj", "{98919CE5-1F32-47E9-A8CC-1582474816FA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdobeSign.UnitTests2", "AdobeSign.UnitTests2\AdobeSign.UnitTests2.csproj", "{93C0942B-7D46-4718-8988-DE0EC4E87FDB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{415C223C-053B-42E7-BCF9-DC56FB7917B8} = {415C223C-053B-42E7-BCF9-DC56FB7917B8}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +20,10 @@ Global
 		{415C223C-053B-42E7-BCF9-DC56FB7917B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{415C223C-053B-42E7-BCF9-DC56FB7917B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{415C223C-053B-42E7-BCF9-DC56FB7917B8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{98919CE5-1F32-47E9-A8CC-1582474816FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{98919CE5-1F32-47E9-A8CC-1582474816FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{98919CE5-1F32-47E9-A8CC-1582474816FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{98919CE5-1F32-47E9-A8CC-1582474816FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93C0942B-7D46-4718-8988-DE0EC4E87FDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93C0942B-7D46-4718-8988-DE0EC4E87FDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93C0942B-7D46-4718-8988-DE0EC4E87FDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93C0942B-7D46-4718-8988-DE0EC4E87FDB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
