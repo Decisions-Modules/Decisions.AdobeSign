@@ -45,7 +45,6 @@
     <Compile Include="AdobeSignUnitTest.cs" />
     <Compile Include="AuthData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="OldAdobeUnitTest.cs" />
     <Compile Include="TestData.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -66,10 +65,6 @@
     <ProjectReference Include="..\Decisions.AdobeSign\Decisions.AdobeSign.csproj">
       <Project>{1e00c530-f837-409d-b118-fb56f835092d}</Project>
       <Name>Decisions.AdobeSign</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Decisions.AdobeSign_lib\Decisions.AdobeSign_lib.csproj">
-      <Project>{c22e02c6-c99e-414a-a3bc-66323f8070fa}</Project>
-      <Name>Decisions.AdobeSign_lib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

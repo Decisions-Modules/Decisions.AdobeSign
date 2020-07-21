@@ -26,17 +26,17 @@ namespace Decisions.AdobeSign
         public string AgreementName { get; set; }
 
         [DataMember]
-        [PropertyClassification(0, "Agreement File Path", "Settings")]
+        [PropertyClassification(1, "Agreement File Path", "Settings")]
         public string FilePath { get; set; }
 
         [DataMember]
         [PropertyHiddenByValue(nameof(InfoType), AdobeSignAgreementCreationType.Simplified, false)]
-        [PropertyClassification(0, "Agreement Recipients", "Settings")]
+        [PropertyClassification(3, "Agreement Recipients", "Settings")]
         public AdobeSignRecipient[] Recipients { get; set; }
 
         [DataMember]
         [PropertyHiddenByValue(nameof(InfoType), AdobeSignAgreementCreationType.Full, false)]
-        [PropertyClassification(0, "Agreement Info", "Settings")]
+        [PropertyClassification(4, "Agreement Info", "Settings")]
         public AdobeSignAgreementInfo FullAgreementInfo { get; set; }
 
     }

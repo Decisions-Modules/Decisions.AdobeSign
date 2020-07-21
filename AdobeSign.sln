@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decisions.AdobeSign.TestSui
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decisions.AdobeSign", "Decisions.AdobeSign\Decisions.AdobeSign.csproj", "{1E00C530-F837-409D-B118-FB56F835092D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Decisions.AdobeSign_lib", "Decisions.AdobeSign_lib\Decisions.AdobeSign_lib.csproj", "{C22E02C6-C99E-414A-A3BC-66323F8070FA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{1E00C530-F837-409D-B118-FB56F835092D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E00C530-F837-409D-B118-FB56F835092D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E00C530-F837-409D-B118-FB56F835092D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C22E02C6-C99E-414A-A3BC-66323F8070FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C22E02C6-C99E-414A-A3BC-66323F8070FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C22E02C6-C99E-414A-A3BC-66323F8070FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C22E02C6-C99E-414A-A3BC-66323F8070FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
