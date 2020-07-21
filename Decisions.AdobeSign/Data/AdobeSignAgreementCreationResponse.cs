@@ -15,8 +15,6 @@ namespace Decisions.AdobeSign
         /// The unique identifier of the agreement
         /// </summary>
         /// <value>The unique identifier of the agreement</value>
-        /*[DataMember]
-        [JsonProperty(PropertyName = "id")]*/
         public string Id { get; set; }
 
     }

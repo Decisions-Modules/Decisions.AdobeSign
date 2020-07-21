@@ -8,7 +8,7 @@ namespace AdobeSignature.UnitTests
 {
     static class AuthData
     {
-        public static string access_token = "3AAABLblqZhBL6xZludAKL44A0_VLRnG0JJgptCJ9A6J0fgRZU8P5-Z7-MFWQI51dLhuahPVRLlgsZG0Y1yxTYC_6IKklaC5k";
+        public static string access_token = "3AAABLblqZhCtGFfKvIIuE49VoJE1ftdxoTVZmdkYgc37R6NkRoQUHOPfT8OEsvFFbLxAH8R0Q-bDjflU5m_yGD667NgWEW3_";
 
         public static string AppId = "CBJCHBCAABAA5P7m1KFrsilfXywFWFRWLsOy_IBK_QUS";
         public static string ClientSecret = "YfyKLNKn7PDl7MN-1NIAQNVVqro2z1o3";

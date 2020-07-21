@@ -15,21 +15,18 @@ namespace Decisions.AdobeSign
         /// Application Description
         /// </summary>
         [DataMember]
-        [JsonProperty(PropertyName = "applicationDescription")]
         public string ApplicationDescription { get; set; }
 
         /// <summary>
         /// Device  Description
         /// </summary>
         [DataMember]
-        [JsonProperty(PropertyName = "deviceDescription ")]
         public string DeviceDescription { get; set; }
 
         /// <summary>
         /// The device local time. The device time provided should not be before 30 days of current date.
         /// </summary>
         [DataMember]
-        [JsonProperty(PropertyName = "deviceTime")]
         public DateTime? DeviceTime { get; set; }
     }
 }

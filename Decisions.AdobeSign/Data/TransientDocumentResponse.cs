@@ -15,8 +15,6 @@ namespace Decisions.AdobeSign
         /// The unique identifier of the uploaded document that can be used in an agreement or a megaSign or widget creation call
         /// </summary>
         /// <value>The unique identifier of the uploaded document that can be used in an agreement or a megaSign or widget creation call</value>
-        /*[DataMember]
-        [JsonProperty(PropertyName = "transientDocumentId")]*/
         public string TransientDocumentId { get; set; }
 
     }
