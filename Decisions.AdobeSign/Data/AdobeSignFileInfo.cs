@@ -6,10 +6,10 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Decisions.AdobeSign.Data
+namespace Decisions.AdobeSign
 {
     [DataContract]
-    public class FileInfo
+    public class AdobeSignFileInfo
     {
         /// <summary>
         /// A document that is associated with the agreement. This field cannot be provided in POST call. In case of GET call, this is the only field returned in the response
@@ -17,7 +17,7 @@ namespace Decisions.AdobeSign.Data
         /// <value>A document that is associated with the agreement. This field cannot be provided in POST call. In case of GET call, this is the only field returned in the response</value>
         [DataMember]
         [JsonProperty(PropertyName = "document")]
-        public Document Document { get; set; }
+        public AdobeSignDocument Document { get; set; }
 
         /// <summary>
         /// The unique label value of a file info element. In case of custom workflow this will map a file to corresponding file element in workflow definition. This must be specified in case of custom workflow agreement creation request 
@@ -49,12 +49,12 @@ namespace Decisions.AdobeSign.Data
         /// <value>URL for an external document to add to the agreement</value>
         [DataMember(Name = "urlFileInfo", EmitDefaultValue = false)]
         [JsonProperty(PropertyName = "urlFileInfo")]
-        public URLFileInfo UrlFileInfo { get; set; }
+        public AdobeSignURLFileInfo UrlFileInfo { get; set; }
 
     }
 
     [DataContract]
-    public class Document 
+    public class AdobeSignDocument 
     {
         /// <summary>
         /// The date the document was created
@@ -104,7 +104,7 @@ namespace Decisions.AdobeSign.Data
     }
 
     [DataContract]
-    public class URLFileInfo
+    public class AdobeSignURLFileInfo
     {
         /// <summary>
         /// The mime type of the referenced file, used to determine if the file can be accepted and the necessary conversion steps can be performed

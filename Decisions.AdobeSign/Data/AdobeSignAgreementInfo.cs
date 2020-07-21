@@ -7,13 +7,14 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Decisions.AdobeSign.Data
+namespace Decisions.AdobeSign
 {
     //https://secure.na1.echosign.com/public/docs/restapi/v6#!/agreements/createAgreement
 
     [DataContract]
     [JsonConverter(typeof(StringEnumConverter))]
     public enum AgreementSignatureType { ESIGN, WRITTEN }
+
     [DataContract]
     [JsonConverter(typeof(StringEnumConverter))]
     public enum AgreementState { AUTHORING, DRAFT, IN_PROCESS }
@@ -33,7 +34,7 @@ namespace Decisions.AdobeSign.Data
 
 
     [DataContract]
-    public class AgreementInfo
+    public class AdobeSignAgreementInfo
     {
         /// <summary>
         /// A list of one or more files (or references to files) that will be sent out for signature. If more than one file is provided, they will be combined into one PDF before being sent out. Note: Only one of the four parameters in every FileInfo object must be specified
@@ -41,7 +42,7 @@ namespace Decisions.AdobeSign.Data
         /// <value>A list of one or more files (or references to files) that will be sent out for signature. If more than one file is provided, they will be combined into one PDF before being sent out. Note: Only one of the four parameters in every FileInfo object must be specified</value>
         [DataMember]
         [JsonProperty(PropertyName = "fileInfos")]
-        public FileInfo[] FileInfos { get; set; }
+        public AdobeSignFileInfo[] FileInfos { get; set; }
 
         /// <summary>
         /// The name of the agreement that will be used to identify it, in emails, website and other places
@@ -57,7 +58,7 @@ namespace Decisions.AdobeSign.Data
         /// <value>A list of one or more participant set. A participant set may have one or more participant. If any member of the participant set takes the action that has been assigned to the set(Sign/Approve/Acknowledge etc ), the action is considered as the action taken by whole participation set. For regular (non-MegaSign) documents, there is no limit on the number of electronic signatures in a single document. Written signatures are limited to four per document</value>
         [DataMember]
         [JsonProperty(PropertyName = "participantSetsInfo")]
-        public ParticipantSetInfo[] ParticipantSetsInfo { get; set; }
+        public AdobeSignParticipantSetInfo[] ParticipantSetsInfo { get; set; }
 
 
         /// <summary>
@@ -82,7 +83,7 @@ namespace Decisions.AdobeSign.Data
         /// <value>A list of one or more CCs that will be copied in the agreement transaction. The CCs will each receive an email at the beginning of the transaction and also when the final document is signed. The email addresses will also receive a copy of the document, attached as a PDF file. Should not be provided in offline agreement creation.</value>
         [DataMember]
         [JsonProperty(PropertyName = "ccs")]
-        public AgreementCcInfo[] Ccs { get; set; }
+        public AdobeSignAgreementCcInfo[] Ccs { get; set; }
 
         /// <summary>
         /// Date when agreement was created. This is a server generated attributed and can not be provided in POST/PUT calls. Format would be yyyy-MM-dd'T'HH:mm:ssZ. For example, e.g 2016-02-25T18:46:19Z represents UTC time
@@ -98,7 +99,7 @@ namespace Decisions.AdobeSign.Data
         /// <value>Device info of the offline device. It should only be provided in case of offline agreement creation.</value>
         [DataMember]
         [JsonProperty(PropertyName = "deviceInfo")]
-        public OfflineDeviceInfo DeviceInfo { get; set; }
+        public AdobeSignOfflineDeviceInfo DeviceInfo { get; set; }
 
 
         /// <summary>
@@ -115,7 +116,7 @@ namespace Decisions.AdobeSign.Data
         /// <value>Email configurations for the agreement. Should not be provided in offline agreement creation.</value>
         [DataMember]
         [JsonProperty(PropertyName = "emailOption")]
-        public EmailOption EmailOption { get; set; }
+        public AdobeSignEmailOption EmailOption { get; set; }
 
         /// <summary>
         /// Time after which Agreement expires and needs to be signed before it. Format should be yyyy-MM-dd'T'HH:mm:ssZ. For example, e.g 2016-02-25T18:46:19Z represents UTC time. Should not be provided in offline agreement creation.
@@ -147,7 +148,7 @@ namespace Decisions.AdobeSign.Data
         /// <value>Specifies the form field layer template or source of form fields to apply on the files in this transaction. If specified, the FileInfo for this parameter must refer to a form field layer template via libraryDocumentId or libraryDocumentName, or if specified via transientDocumentId or documentURL, it must be of a supported file type. Note: Only one of the four parameters in every FileInfo object must be specified</value>
         [DataMember]
         [JsonProperty(PropertyName = "formFieldLayerTemplates")]
-        public FileInfo[] FormFieldLayerTemplates { get; set; }
+        public AdobeSignFileInfo[] FormFieldLayerTemplates { get; set; }
 
         /// <summary>
         /// The unique identifier of the group to which the agreement belongs to. If not provided during agreement creation, primary group of the creator will be used

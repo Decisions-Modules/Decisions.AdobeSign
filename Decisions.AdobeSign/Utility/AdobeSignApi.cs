@@ -1,5 +1,4 @@
-﻿using Decisions.AdobeSign.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -27,23 +26,30 @@ namespace Decisions.AdobeSign.Utility
             return res.TransientDocumentId;
         }
 
-        public static string CreateAgreement(AdobeSignConnection connection, AgreementInfo agreementInfo)
+        public static string CreateAgreement(AdobeSignConnection connection, AdobeSignAgreementInfo agreementInfo)
         {
-            AgreementCreationResponse res = PostRequest<AgreementCreationResponse, AgreementInfo>(connection, "agreements", agreementInfo);
+            AdobeSignAgreementCreationResponse res = PostRequest<AdobeSignAgreementCreationResponse, AdobeSignAgreementInfo>(connection, "agreements", agreementInfo);
             return res.Id;
         }
 
-        public static AgreementInfo GetAgreementInfo(AdobeSignConnection connection, string agreementId)
+        public static AdobeSignAgreementInfo GetAgreementInfo(AdobeSignConnection connection, string agreementId)
         {
-            AgreementInfo res = GetRequest<AgreementInfo>(connection, $"agreements/{agreementId}");
+            if (string.IsNullOrEmpty(agreementId))
+                throw new ArgumentNullException("agreementId cannot be null nor empty");
+
+            AdobeSignAgreementInfo res = GetRequest<AdobeSignAgreementInfo>(connection, $"agreements/{agreementId}");
             return res;
         }
 
         public static void GetTransientDocument(AdobeSignConnection connection, string agreementId, string filePath)
         {
+            if (string.IsNullOrEmpty(agreementId))
+                throw new ArgumentNullException("agreementId cannot be null nor empty");
+            if (string.IsNullOrEmpty(filePath))
+                throw new ArgumentNullException("filePath cannot be null nor empty");
+
             HttpClient httpClient = GetClient(connection);
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/PDF");
-            // httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             HttpResponseMessage response = httpClient.GetAsync($"agreements/{agreementId}/combinedDocument").Result;
             CheckResponse(response);
 

@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Decisions.AdobeSign.Data
+namespace Decisions.AdobeSign
 {
     [DataContract]
     [JsonConverter(typeof(StringEnumConverter))]
@@ -18,7 +18,7 @@ namespace Decisions.AdobeSign.Data
     public enum AuthenticationMethod {NONE, PASSWORD, PHONE, KBA, WEB_IDENTITY, ADOBE_SIGN, GOV_ID}
 
     [DataContract]
-    public class ParticipantSetInfo
+    public class AdobeSignParticipantSetInfo
     {
         /// <summary>
         /// Array of ParticipantInfo objects, containing participant-specific data (e.g. email). All participants in the array belong to the same set
@@ -26,7 +26,7 @@ namespace Decisions.AdobeSign.Data
         /// <value>Array of ParticipantInfo objects, containing participant-specific data (e.g. email). All participants in the array belong to the same set</value>
         [DataMember]
         [JsonProperty(PropertyName = "memberInfos")]
-        public ParticipantInfo[] MemberInfos { get; set; }
+        public AdobeSignParticipantInfo[] MemberInfos { get; set; }
 
         /// <summary>
         /// Index indicating position at which signing group needs to sign. Signing group to sign at first place is assigned a 1 index. Different signingOrder specified in input should form a valid consecutive increasing sequence of integers. Otherwise signingOrder will be considered invalid. No signingOrder should be specified for SHARE role
@@ -79,7 +79,7 @@ namespace Decisions.AdobeSign.Data
     }
 
     [DataContract]
-    public class ParticipantInfo
+    public class AdobeSignParticipantInfo
     {
 
         /// <summary>
@@ -96,12 +96,12 @@ namespace Decisions.AdobeSign.Data
         /// <value>Security options that apply to the participant</value>
         [DataMember]
         [JsonProperty(PropertyName = "securityOption")]
-        public ParticipantSecurityOption SecurityOption { get; set; }
+        public AdobeSignParticipantSecurityOption SecurityOption { get; set; }
 
     }
 
     [DataContract]
-    public class ParticipantSecurityOption
+    public class AdobeSignParticipantSecurityOption
     {
         /// <summary>
         /// The authentication method for the participants to have access to view and sign the document
@@ -125,11 +125,11 @@ namespace Decisions.AdobeSign.Data
         /// <value>The phoneInfo required for the participant to view and sign the document</value>
         [DataMember]
         [JsonProperty(PropertyName = "phoneInfo")]
-        public PhoneInfo PhoneInfo { get; set; }
+        public AdobeSignPhoneInfo PhoneInfo { get; set; }
     }
 
     [DataContract]
-    public class PhoneInfo
+    public class AdobeSignPhoneInfo
     {
         /// <summary>
         /// The phone Info country code required for the participant to view and sign the document if authentication method is PHONE

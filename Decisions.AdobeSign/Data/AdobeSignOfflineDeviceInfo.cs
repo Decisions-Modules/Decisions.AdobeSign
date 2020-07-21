@@ -6,10 +6,10 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Decisions.AdobeSign.Data
+namespace Decisions.AdobeSign
 {
     [DataContract]
-    public class OfflineDeviceInfo
+    public class AdobeSignOfflineDeviceInfo
     {
         /// <summary>
         /// Application Description

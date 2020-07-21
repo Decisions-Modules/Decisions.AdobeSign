@@ -37,6 +37,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,16 +47,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\AdobeSignConnection.cs" />
-    <Compile Include="Data\AdobeSignException.cs" />
-    <Compile Include="Data\AgreementCcInfo.cs" />
-    <Compile Include="Data\AgreementCreationResponse.cs" />
-    <Compile Include="Data\AgreementInfo.cs" />
-    <Compile Include="Data\EmailOption.cs" />
-    <Compile Include="Data\FileInfo.cs" />
-    <Compile Include="Data\OfflineDeviceInfo.cs" />
-    <Compile Include="Data\ParticipantSetInfo.cs" />
+    <Compile Include="Data\AdobeSignErrorInfo.cs" />
+    <Compile Include="Data\AdobeSignAgreementCcInfo.cs" />
+    <Compile Include="Data\AdobeSignAgreementCreationResponse.cs" />
+    <Compile Include="Data\AdobeSignAgreementInfo.cs" />
+    <Compile Include="Data\AdobeSignAgreementCreationData.cs" />
+    <Compile Include="Data\AdobeSignEmailOption.cs" />
+    <Compile Include="Data\AdobeSignFileInfo.cs" />
+    <Compile Include="Data\AdobeSignOfflineDeviceInfo.cs" />
+    <Compile Include="Data\AdobeSignParticipantSetInfo.cs" />
     <Compile Include="Data\TransientDocumentResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Steps\AbstractStep.cs" />
+    <Compile Include="Steps\CreateAgreement.cs" />
+    <Compile Include="Steps\DownloadDocument.cs" />
+    <Compile Include="Steps\GetAgreementInfo.cs" />
     <Compile Include="Utility\AdobeSignApi.cs" />
     <Compile Include="Utility\AdobeSignApiBase.cs" />
   </ItemGroup>

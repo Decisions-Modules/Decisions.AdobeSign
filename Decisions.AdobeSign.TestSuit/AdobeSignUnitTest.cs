@@ -1,4 +1,4 @@
-﻿using Decisions.AdobeSign.Data;
+﻿using Decisions.AdobeSign;
 using Decisions.AdobeSign.Utility;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -8,14 +8,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using FileInfo = Decisions.AdobeSign.Data.FileInfo;
+using AdobeSignFileInfo = Decisions.AdobeSign.AdobeSignFileInfo;
 
 namespace AdobeSignature.UnitTests
 {
     [TestClass]
     public class AdobeSignUnitTest
     {
-
         private AdobeSignConnection getConnection()
         {
             return new AdobeSignConnection()
@@ -36,8 +35,8 @@ namespace AdobeSignature.UnitTests
             string agreementId = AdobeSignApi.CreateAgreement(conn, CreateAgreementInfo(docId));
             Assert.IsNotNull(agreementId);
 
-            AgreementInfo ai = AdobeSignApi.GetAgreementInfo(conn, agreementId);
-            AgreementInfo agreementInfo;
+            AdobeSignAgreementInfo ai = AdobeSignApi.GetAgreementInfo(conn, agreementId);
+            AdobeSignAgreementInfo agreementInfo;
 
             do
             {
@@ -56,14 +55,14 @@ namespace AdobeSignature.UnitTests
             AdobeSignApi.GetTransientDocument(getConnection(), agreementId, TestData.SignedAgreementFileName);
         }
 
-        private AgreementInfo CreateAgreementInfo(string docId)
+        private AdobeSignAgreementInfo CreateAgreementInfo(string docId)
         {
-            AgreementInfo agreementInfo = new AgreementInfo();
-            agreementInfo.FileInfos = new FileInfo[] { new FileInfo() { TransientDocumentId = docId } };
+            AdobeSignAgreementInfo agreementInfo = new AdobeSignAgreementInfo();
+            agreementInfo.FileInfos = new AdobeSignFileInfo[] { new AdobeSignFileInfo() { TransientDocumentId = docId } };
 
-            agreementInfo.EmailOption = new EmailOption()
+            agreementInfo.EmailOption = new AdobeSignEmailOption()
             {
-                SendOptions = new SendOptions()
+                SendOptions = new AdobeSignSendOptions()
                 {
                     CompletionEmails = AgreementEmailNotification.ALL,
                     InFlightEmails = AgreementEmailNotification.NONE,
@@ -77,11 +76,11 @@ namespace AdobeSignature.UnitTests
 
             agreementInfo.Name = "Test Agreement Name";
 
-            agreementInfo.ParticipantSetsInfo = new ParticipantSetInfo[] { new ParticipantSetInfo() {
+            agreementInfo.ParticipantSetsInfo = new AdobeSignParticipantSetInfo[] { new AdobeSignParticipantSetInfo() {
                 Role = AgreementParticipantRole.SIGNER,
                 Name = "Ivan Kov",
                 Order = 1,
-                MemberInfos = new ParticipantInfo[]{new ParticipantInfo(){ Email = "kovalchuk_i_v@mail.ru"} }
+                MemberInfos = new AdobeSignParticipantInfo[]{new AdobeSignParticipantInfo(){ Email = "kovalchuk_i_v@mail.ru"} }
             } };
 
             return agreementInfo;

@@ -6,10 +6,10 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Decisions.AdobeSign.Data
+namespace Decisions.AdobeSign
 {
     [DataContract]
-    public class AgreementCcInfo
+    public class AdobeSignAgreementCcInfo
     {
         /// <summary>
         /// Email of the CC participant of the agreement

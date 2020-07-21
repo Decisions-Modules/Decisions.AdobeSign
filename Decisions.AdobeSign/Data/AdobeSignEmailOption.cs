@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Decisions.AdobeSign.Data
+namespace Decisions.AdobeSign
 {
 
     [DataContract]
@@ -15,7 +15,7 @@ namespace Decisions.AdobeSign.Data
     public enum AgreementEmailNotification { ALL, NONE }
 
     [DataContract]
-    public class EmailOption
+    public class AdobeSignEmailOption
     {
         /// <summary>
         /// Specify emails to be sent to different participants at different steps of the agreement process. Note: ALL means  emails for the events will be sent to all participants. NONE means emails for the events will not be sent to any participant
@@ -23,11 +23,11 @@ namespace Decisions.AdobeSign.Data
         /// <value>Specify emails to be sent to different participants at different steps of the agreement process. Note: ALL means  emails for the events will be sent to all participants. NONE means emails for the events will not be sent to any participant</value>
         [DataMember]
         [JsonProperty(PropertyName = "sendOptions")]
-        public SendOptions SendOptions { get; set; }
+        public AdobeSignSendOptions SendOptions { get; set; }
     }
 
     [DataContract]
-    public class SendOptions
+    public class AdobeSignSendOptions
     {
         /// <summary>
         /// Control notification mails for agreement completion events - COMPLETED, CANCELLED, EXPIRED and REJECTED

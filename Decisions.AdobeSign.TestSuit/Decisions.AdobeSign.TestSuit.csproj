@@ -68,7 +68,7 @@
       <Name>Decisions.AdobeSign</Name>
     </ProjectReference>
     <ProjectReference Include="..\Decisions.AdobeSign_lib\Decisions.AdobeSign_lib.csproj">
-      <Project>{415c223c-053b-42e7-bcf9-dc56fb7917b8}</Project>
+      <Project>{c22e02c6-c99e-414a-a3bc-66323f8070fa}</Project>
       <Name>Decisions.AdobeSign_lib</Name>
     </ProjectReference>
   </ItemGroup>

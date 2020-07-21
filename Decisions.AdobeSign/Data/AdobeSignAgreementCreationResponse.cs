@@ -6,17 +6,17 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Decisions.AdobeSign.Data
+namespace Decisions.AdobeSign
 {
-    [DataContract]
-    public class AgreementCreationResponse
+    //[DataContract]
+    internal class AdobeSignAgreementCreationResponse
     {
         /// <summary>
         /// The unique identifier of the agreement
         /// </summary>
         /// <value>The unique identifier of the agreement</value>
-        [DataMember]
-        [JsonProperty(PropertyName = "id")]
+        /*[DataMember]
+        [JsonProperty(PropertyName = "id")]*/
         public string Id { get; set; }
 
     }
