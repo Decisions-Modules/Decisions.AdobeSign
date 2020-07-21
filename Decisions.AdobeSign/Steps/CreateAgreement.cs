@@ -40,7 +40,7 @@ namespace Decisions.AdobeSign
             var agreementData = (AdobeSignAgreementCreationData)data.Data[AbstractStep.agreementCreationDataLabel];
 
             var fileData = File.ReadAllBytes(agreementData.FilePath);
-            string transientDocumentId = AdobeSignApi.CreateTransientDocument(conn, fileData, agreementData.AgreementName);
+            string transientDocumentId = AdobeSignApi.CreateTransientDocument(conn, fileData, Path.GetFileName(agreementData.FilePath));
 
             AdobeSignAgreementInfo agreementInfo = ExtractCreationData(agreementData, transientDocumentId);
             string id = AdobeSignApi.CreateAgreement(conn, agreementInfo);
@@ -68,16 +68,10 @@ namespace Decisions.AdobeSign
                     var recipient = creationData.Recipients[i];
                     var participantInfo = new AdobeSignParticipantSetInfo()
                     {
-                        MemberInfos = new AdobeSignParticipantInfo[]
-                                {
-                                    new AdobeSignParticipantInfo()
-                                    {
-                                        Email = recipient.Email,
-                                    }
-                                },
+                        MemberInfos = new AdobeSignParticipantInfo[] { new AdobeSignParticipantInfo(){Email = recipient.Email} },
                         Name = recipient.Name,
                         Role = AgreementParticipantRole.SIGNER,
-                        Order = i
+                        Order = i+1
                     };
                     participantsSetInfo[i] = participantInfo;
 
@@ -85,11 +79,6 @@ namespace Decisions.AdobeSign
                 res.ParticipantSetsInfo = participantsSetInfo;
             }
 
-            res.FileInfos = new AdobeSignFileInfo[]
-                        {
-                            new AdobeSignFileInfo()  { TransientDocumentId = transientDocumentId }
-                        };
-            res.Name = creationData.AgreementName;
             res.EmailOption = new AdobeSignEmailOption()
             {
                 SendOptions = new AdobeSignSendOptions()
@@ -99,6 +88,9 @@ namespace Decisions.AdobeSign
                     CompletionEmails = AgreementEmailNotification.ALL,
                 }
             };
+
+            res.FileInfos = new AdobeSignFileInfo[]{ new AdobeSignFileInfo()  { TransientDocumentId = transientDocumentId } };
+            res.Name = creationData.AgreementName;
             res.SignatureType = AgreementSignatureType.ESIGN;
             res.State = AgreementState.IN_PROCESS;
 

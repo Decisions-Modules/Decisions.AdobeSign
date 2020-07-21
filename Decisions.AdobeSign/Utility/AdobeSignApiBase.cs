@@ -33,15 +33,23 @@ namespace Decisions.AdobeSign.Utility
             return httpClient;
         }
 
-        private static string ParseRequestContent<T>(T content)
+        private static JsonSerializerSettings jsonSettings
         {
-                var jsonSettings = new JsonSerializerSettings
+            get
+            {
+                return new JsonSerializerSettings
                 {
                     NullValueHandling = NullValueHandling.Ignore,
-                    ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() }
+                    ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
+                    DateFormatString = "yyyy-MM-dd'T'HH:mm:ssZ",
+                    DateTimeZoneHandling = DateTimeZoneHandling.Utc
                 };
-                string data = JsonConvert.SerializeObject(content, Formatting.None, jsonSettings);
-                return data;
+            }
+        }
+        private static string ParseRequestContent<T>(T content)
+        {
+            string data = JsonConvert.SerializeObject(content, Formatting.None, jsonSettings);
+            return data;
         }
         private static void CheckResponse(HttpResponseMessage response)
         {
@@ -56,7 +64,7 @@ namespace Decisions.AdobeSign.Utility
             CheckResponse(response);
             var responseString = response.Content.ReadAsStringAsync().Result;
 
-            var result = JsonConvert.DeserializeObject<R>(responseString);
+            var result = JsonConvert.DeserializeObject<R>(responseString, jsonSettings);
 
             return result;
         }
@@ -68,7 +76,7 @@ namespace Decisions.AdobeSign.Utility
             return ParseResponse<R>(response);
         }
 
-        private static R PostRequest<R,T>(AdobeSignConnection connection, string requestUri, T content) where R : new()
+        private static R PostRequest<R, T>(AdobeSignConnection connection, string requestUri, T content) where R : new()
         {
             string data = ParseRequestContent(content);
             var contentStr = new StringContent(data, Encoding.UTF8, "application/json");
