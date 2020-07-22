@@ -19,7 +19,7 @@ namespace AdobeSignature.UnitTests
         {
             return new AdobeSignConnection()
             {
-                AccessToken = AuthData.access_token,
+                AccessToken = AuthData.AccessToken,
                 BaseAddress = AuthData.BaseUrl
             };
 
