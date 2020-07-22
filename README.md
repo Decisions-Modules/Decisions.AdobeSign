@@ -29,9 +29,24 @@ https://secure.na1.echosign.com/public/docs/restapi/v6
 ![screenshot of sample](https://github.com/Decisions-Modules/Decisions.AdobeSign/blob/master/Creating_token.png)
 
 ### Decisions Steps
-This module implements 3 Decisions steps: ***Create Agreement***, ***Get Agreement Info*** and  ***Download Document***.
+This module has some data structures and implements 3 Decisions steps: ***Create Agreement***, ***Get Agreement Info*** and  ***Download Document***. 
 
-***Create Agreement*** step uploads an agreement pdf-document to AdobeSign service, and send the agreement for signing
-***Get Agreement Info*** step retrieves the agreement’s info, so you can check if it has been signed.
-***Download Document*** step downloads the signed document.
+#### Most important data structures
+***AdobeSignAgreementCreationData*** data structure is used to create an agreement. <br />
+ ![screenshot of sample](https://github.com/Decisions-Modules/Decisions.AdobeSign/blob/master/AdobeSignAgreementCreationData.png)
+ 
+There are two options for Agreement Info Types: ***Simplified*** and ***Full***.<br />
+***Simplified*** allows you to add some Agreement Recipients and that’s it.<br />
+***Full*** gives you full control of ***AdobeSignAgreementInfo***'s properties. Read AdobeSign documentation to use it.<br />
+
+***AdobeSignAgreementInfo*** data structure holds all agreement's properties. A signed document has ***SIGNED*** value in ***Status*** property.
+
+#### Steps
+***Create Agreement*** step uploads an agreement pdf - document to AdobeSign service, and send the agreement for signing<br />
+
+***Get Agreement Info*** step retrieves the agreement’s info, so you can check if it has been signed. A signed document has ***SIGNED*** value in ***Status*** property<br />
+
+***Download Document*** step downloads the signed document.<br />
+
+
 
