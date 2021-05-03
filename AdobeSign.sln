@@ -3,7 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decisions.AdobeSign.TestSuit", "Decisions.AdobeSign.TestSuit\Decisions.AdobeSign.TestSuit.csproj", "{93C0942B-7D46-4718-8988-DE0EC4E87FDB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decisions.AdobeSign", "Decisions.AdobeSign\Decisions.AdobeSign.csproj", "{1E00C530-F837-409D-B118-FB56F835092D}"
 EndProject
