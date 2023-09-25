@@ -69,15 +69,19 @@ namespace Decisions.AdobeSign
         }
         private string GetBaseApi(OAuthToken oAuthToken)
         {
+            string result;
             try
             {
                 JObject keyValuePairs = JsonConvert.DeserializeObject(oAuthToken.FullAccessTokenResponse) as JObject;
-                return keyValuePairs?["api_access_point"]?.ToObject<string>();
+                result = keyValuePairs?["api_access_point"]?.ToObject<string>();
             }
             catch (Exception ex)
             {
                 throw new LoggedException("Can't extract AdobeSign's base URL", ex);
             }
+            if (string.IsNullOrEmpty(result))
+                throw new LoggedException("Can't extract AdobeSign's base URL");
+            return result;
         }
 
         public ResultData Run(StepStartData data)
