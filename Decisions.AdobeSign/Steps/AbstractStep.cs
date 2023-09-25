@@ -8,8 +8,8 @@ using DecisionsFramework.Design.Properties;
 using DecisionsFramework.Design.Properties.Attributes;
 using DecisionsFramework.ServiceLayer.Services.ContextData;
 using System;
-using System.Collections.Specialized;
-using System.Web;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Decisions.AdobeSign
 {
@@ -69,18 +69,15 @@ namespace Decisions.AdobeSign
         }
         private string GetBaseApi(OAuthToken oAuthToken)
         {
-            string authorizationResponse = oAuthToken.FullAuthorizationResponse;
-            if(String.IsNullOrEmpty(authorizationResponse))
-                throw new LoggedException("Can't extract AdobeSign's base URL");
-            int qIdx = authorizationResponse.IndexOf('?');
-            if (qIdx == -1)
-                throw new LoggedException("Can't extract AdobeSign's base URL");
-            string queryString = authorizationResponse.Substring(qIdx + 1);
-            NameValueCollection qs = HttpUtility.ParseQueryString(queryString);
-
-            var endpoint = qs["api_access_point"];
-            if (qs == null) throw new LoggedException("Can't extract AdobeSign's base URL");
-            return endpoint;
+            try
+            {
+                JObject keyValuePairs = JsonConvert.DeserializeObject(oAuthToken.FullAccessTokenResponse) as JObject;
+                return keyValuePairs?["api_access_point"]?.ToObject<string>();
+            }
+            catch (Exception ex)
+            {
+                throw new LoggedException("Can't extract AdobeSign's base URL", ex);
+            }
         }
 
         public ResultData Run(StepStartData data)
