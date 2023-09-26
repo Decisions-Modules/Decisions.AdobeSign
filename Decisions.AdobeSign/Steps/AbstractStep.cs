@@ -8,8 +8,7 @@ using DecisionsFramework.Design.Properties;
 using DecisionsFramework.Design.Properties.Attributes;
 using DecisionsFramework.ServiceLayer.Services.ContextData;
 using System;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Decisions.AdobeSign.Utility;
 
 namespace Decisions.AdobeSign
 {
@@ -67,21 +66,20 @@ namespace Decisions.AdobeSign
 
             throw new LoggedException($"Token Entity '{token.EntityName}' has no AccessToken itself.");
         }
+        
         private string GetBaseApi(OAuthToken oAuthToken)
         {
-            string result;
             try
             {
-                JObject keyValuePairs = JsonConvert.DeserializeObject(oAuthToken.FullAccessTokenResponse) as JObject;
-                result = keyValuePairs?["api_access_point"]?.ToObject<string>();
+                return AdobeSignApi.GetBaseUriInfo(
+                        oAuthToken.TokenId, 
+                        oAuthToken.TokenData)
+                    .apiAccessPoint;
             }
             catch (Exception ex)
             {
                 throw new LoggedException("Can't extract AdobeSign's base URL", ex);
             }
-            if (string.IsNullOrEmpty(result))
-                throw new LoggedException("Can't extract AdobeSign's base URL");
-            return result;
         }
 
         public ResultData Run(StepStartData data)

@@ -5,6 +5,8 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
+using Decisions.OAuth;
+using DecisionsFramework;
 
 namespace Decisions.AdobeSign.Utility
 {
@@ -55,6 +57,34 @@ namespace Decisions.AdobeSign.Utility
 
             byte[] bytes = response.Content.ReadAsByteArrayAsync().Result;
             System.IO.File.WriteAllBytes(filePath, bytes);
+        }
+
+        // the region dynamic uri should not ever change for a token and therefore does not really need to be called more than once per token instance
+        private static Dictionary<string, AdobeSignBaseUriInfo> baseUriTokenCache;
+        
+        private const string baseAddressUrisLookup = "https://api.na3.adobesign.com:443/";
+
+        public static AdobeSignBaseUriInfo GetBaseUriInfo(string tokenId, string tokenData)
+        {
+            baseUriTokenCache ??= new Dictionary<string, AdobeSignBaseUriInfo>();
+            
+            // attempt to lookup in cache first. Since a token will never change dynamic region, we should not check more than once for a token per decisions instance
+            if (baseUriTokenCache.TryGetValue(tokenId, out var info))
+                return info;
+            
+            // else use the officially supplied region-agnostic url to pull the appropriate dynamic uri's info for this token
+            AdobeSignConnection connection = new AdobeSignConnection()
+            {
+                BaseAddress = baseAddressUrisLookup,
+                AccessToken = tokenData
+            };
+            AdobeSignBaseUriInfo result = GetRequest<AdobeSignBaseUriInfo>(connection, "baseUris");
+            
+            if (string.IsNullOrWhiteSpace(result.apiAccessPoint) || string.IsNullOrWhiteSpace(result.webAccessPoint))
+                throw new LoggedException($"No valid response from {baseAddressUrisLookup}api/rest/v6/baseUris, try refreshing your OAuth Token");
+
+            baseUriTokenCache.Add(tokenId, result);
+            return result;
         }
 
     }

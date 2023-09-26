@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Decisions.OAuth;
 
 namespace Decisions.AdobeSign.Utility
 {
@@ -83,7 +84,6 @@ namespace Decisions.AdobeSign.Utility
 
             HttpResponseMessage response = GetJsonClient(connection).PostAsync(requestUri, contentStr).Result;
             return ParseResponse<R>(response);
-        }
-
+        } 
     }
 }
