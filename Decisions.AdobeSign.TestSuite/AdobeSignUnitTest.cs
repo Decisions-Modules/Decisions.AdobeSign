@@ -15,7 +15,7 @@ namespace AdobeSignature.UnitTests
             return new AdobeSignConnection()
             {
                 AccessToken = AuthData.AccessToken,
-                BaseAddress = AuthData.BaseUrl
+                BaseAddress = AdobeSignApi.GetBaseUriInfo(AuthData.AppId, AuthData.AccessToken).apiAccessPoint
             };
 
         }
