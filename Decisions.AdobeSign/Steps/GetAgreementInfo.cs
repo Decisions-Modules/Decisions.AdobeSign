@@ -2,43 +2,26 @@
 using DecisionsFramework.Design.ConfigurationStorage.Attributes;
 using DecisionsFramework.Design.Flow;
 using DecisionsFramework.Design.Flow.Mapping;
-using DecisionsFramework.Design.Properties;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DecisionsFramework.Design.Properties; 
 
 namespace Decisions.AdobeSign.Steps
 {
-    [AutoRegisterStep("Get Agreement Info", adobeSignCategory)]
+    [AutoRegisterStep("Get Agreement Info", AdobeSignCategory)]
     [Writable]
     public class GetAgreementInfo : AbstractStep
     {
         [PropertyHidden]
-        public override DataDescription[] InputData
-        {
-            get
-            {
-                var data = new DataDescription[] { new DataDescription(typeof(string), AbstractStep.AgreementIdLabel), };
-                return base.InputData.Concat(data).ToArray();
-            }
-        }
+        public override DataDescription[] InputData => new[]
+            { new DataDescription(typeof(string), AgreementIdLabel) };
 
-        public override OutcomeScenarioData[] OutcomeScenarios
-        {
-            get
-            {
-                var data = new OutcomeScenarioData[] { new OutcomeScenarioData(resultOutcomeLabel, new DataDescription(typeof(AdobeSignAgreementInfo), AbstractStep.AgreementInfoLabel)) };
-                return base.OutcomeScenarios.Concat(data).ToArray();
-            }
-        }
+        [PropertyHidden]
+        protected override OutcomeScenarioData SuccessOutcomeScenarioData => 
+            new(ResultOutcomeLabel, new DataDescription(typeof(AdobeSignAgreementInfo), AgreementInfoLabel));
 
-        protected override Object ExecuteStep(AdobeSignConnection conn, StepStartData data)
+        protected override void ExecuteStep(StepStartData data)
         {
-            string  agreementId = (string)data.Data[AbstractStep.AgreementIdLabel];
-            AdobeSignAgreementInfo res = AdobeSignApi.GetAgreementInfo(conn, agreementId);
-            return res;
+            string agreementId = (string)data.Data[AgreementIdLabel];
+            AdobeSignApi.GetAgreementInfo(Token, agreementId);
         }
     }
 }

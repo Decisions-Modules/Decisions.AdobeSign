@@ -8,119 +8,80 @@ using DecisionsFramework.Design.Properties;
 using DecisionsFramework.Design.Properties.Attributes;
 using DecisionsFramework.ServiceLayer.Services.ContextData;
 using System;
-using Decisions.AdobeSign.Utility;
+using System.Linq;
 
 namespace Decisions.AdobeSign
 {
     [Writable]
-    public abstract class AbstractStep : ISyncStep, IDataConsumer, IDataProducer, IValidationSource
+    public abstract class AbstractStep : ISyncStep, IDataConsumer, IValidationSource
     {
-        public const string adobeSignCategory = "Integration/AdobeSign";
-
-        protected const string errorOutcomeLabel = "Error";
-        protected const string resultOutcomeLabel = "Result";
-        protected const string doneOutcomeLabel = "Done";
-        protected const string errorOutcomeDataLabel = "Error info";
-        protected const string resultLabel = "RESULT";
-
-        protected const string tokenLabel = "Token";
-        protected const string agreementCreationDataLabel = "Agreement Data";
+        protected const string AdobeSignCategory = "Integration/AdobeSign";
+        protected const string ResultOutcomeLabel = "Result";
+        protected const string AgreementCreationDataLabel = "Agreement Data";
         protected const string AgreementIdLabel = "Agreement Id";
         protected const string AgreementInfoLabel = "Agreement Info";
         protected const string FilePathLabel = "File Path";
+        private const string ErrorOutcomeLabel = "Error";
+        private const string ErrorOutcomeDataLabel = "Error info";
 
-        [PropertyHidden]
-        public virtual DataDescription[] InputData
-        {
-            get
-            {
-                return new DataDescription[] { };
-            }
-        }
+        [PropertyHidden] 
+        public abstract DataDescription[] InputData { get; }
 
-        private const int errorOutcomeIndex = 0;
-        private const int resultOutcomeIndex = 1;
-        public virtual OutcomeScenarioData[] OutcomeScenarios
-        {
-            get
-            {
-                return new OutcomeScenarioData[] { new OutcomeScenarioData(errorOutcomeLabel, new DataDescription(typeof(AdobeSignErrorInfo), errorOutcomeDataLabel)) };
-            }
-        }
+        public OutcomeScenarioData[] OutcomeScenarios => 
+            new[] { 
+                new OutcomeScenarioData(
+                    ErrorOutcomeLabel, 
+                    new DataDescription(typeof(AdobeSignErrorInfo), ErrorOutcomeDataLabel)),
+                SuccessOutcomeScenarioData
+            };
+
+        [PropertyHidden] 
+        protected abstract OutcomeScenarioData SuccessOutcomeScenarioData { get; }
 
         [TokenPicker]
         [WritableValue]
         public string Token { get; set; }
 
-        private AdobeSignConnection CreateConnection(string id)
-        {
-            ORM<OAuthToken> orm = new ORM<OAuthToken>();
-            var token = orm.Fetch(id);
-            if (token == null)
-                throw new EntityNotFoundException($"Can not find token with TokenId=\"{id}\"");
-
-            if (token.TokenData != null)
-            {
-                return new AdobeSignConnection() { BaseAddress = GetBaseApi(token), AccessToken = token.TokenData };
-            };
-
-            throw new LoggedException($"Token Entity '{token.EntityName}' has no AccessToken itself.");
-        }
-        
-        private string GetBaseApi(OAuthToken oAuthToken)
-        {
-            try
-            {
-                return AdobeSignApi.GetBaseUriInfo(
-                        oAuthToken.TokenId, 
-                        oAuthToken.TokenData)
-                    .apiAccessPoint;
-            }
-            catch (Exception ex)
-            {
-                throw new LoggedException("Can't extract AdobeSign's base URL", ex);
-            }
-        }
-
         public ResultData Run(StepStartData data)
         {
+            if (OutcomeScenarios.Length <= 1)
+                throw new LoggedException("This step has an internal error; more than one outcome paths expected");
+           
             try
             {
-                AdobeSignConnection conn = CreateConnection(Token);
-
-                Object res = ExecuteStep(conn, data);
-
-                var outputData = OutcomeScenarios[resultOutcomeIndex].OutputData;
-                var exitPointName = OutcomeScenarios[resultOutcomeIndex].ExitPointName;
-
-                if (outputData != null && outputData.Length > 0)
-                    return new ResultData(exitPointName, new DataPair[] { new DataPair(outputData[0].Name, res) });
-                else
-                    return new ResultData(exitPointName);
+                ExecuteStep(data);
+                return new ResultData(OutcomeScenarios.Last().ExitPointName);
             }
             catch (Exception ex)
             {
-                AdobeSignErrorInfo ErrInfo = AdobeSignErrorInfo.FromException(ex);
-                return new ResultData(errorOutcomeLabel, new DataPair[] { new DataPair(errorOutcomeDataLabel, ErrInfo) });
+                AdobeSignErrorInfo errInfo = AdobeSignErrorInfo.FromException(ex);
+                return new ResultData(
+                    ErrorOutcomeLabel, 
+                    new[] { new DataPair(ErrorOutcomeDataLabel, errInfo) });
             }
         }
 
-        protected abstract Object ExecuteStep(AdobeSignConnection conn, StepStartData data);
+        protected abstract void ExecuteStep(StepStartData data);
 
         public ValidationIssue[] GetValidationIssues()
         {
             if (Token == null)
-                return new ValidationIssue[] { new ValidationIssue("Token cannot be null") };
+                return new[] { new ValidationIssue("Token is missing / invalid") };
 
             try
-            {
-                var accessToken = CreateConnection(Token);
+            { 
+                OAuthToken oAuthToken = new ORM<OAuthToken>().Fetch(Token);
+                if (oAuthToken == null)
+                    throw new EntityNotFoundException($"Can not find token with TokenId=\"{Token}\"");
+                if (oAuthToken.TokenData == null)
+                    throw new LoggedException($"Token Entity '{oAuthToken.EntityName}' has no AccessToken itself.");
             }
             catch (Exception ex)
             {
-                return new ValidationIssue[] { new ValidationIssue(ex.Message ?? ex.ToString()) };
+                return new[] { new ValidationIssue(ex.Message) };
             }
-            return new ValidationIssue[0];
+            
+            return Array.Empty<ValidationIssue>();
         }
 
     }

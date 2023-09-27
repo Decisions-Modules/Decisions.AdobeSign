@@ -1,91 +1,114 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Mime;
 using System.Text;
-using System.Threading.Tasks;
-using Decisions.OAuth;
 using DecisionsFramework;
+using Newtonsoft.Json;
 
 namespace Decisions.AdobeSign.Utility
 {
     public static partial class AdobeSignApi
     {
-
-        public static string CreateTransientDocument(AdobeSignConnection connection, byte[] fileData, string fileName, string mimeType = "application/PDF")
+        public static string CreateTransientDocument(
+            string accessTokenData, 
+            byte[] fileData, 
+            string fileName, 
+            string mimeType = "application/PDF")
         {
-            HttpClient httpClient = GetClient(connection);
-
-            var content = new MultipartFormDataContent();
+            if (string.IsNullOrEmpty(accessTokenData)) 
+                throw new ArgumentNullException(nameof(accessTokenData), $"{nameof(accessTokenData)} cannot be null or empty");
+            if (fileData == null)
+                throw new ArgumentNullException(nameof(fileData), $"{nameof(fileData)} is missing");
+            if (string.IsNullOrEmpty(fileName)) 
+                throw new ArgumentNullException(nameof(fileName), $"{nameof(fileName)} cannot be null or empty");
+            if (string.IsNullOrEmpty(mimeType))
+                throw new ArgumentNullException(nameof(mimeType), $"{nameof(mimeType)} cannot be null or empty");
+            
+            HttpRequestMessage requestMessage = BuildHttpPostRequestMessage(
+                accessTokenData: accessTokenData,
+                methodUri: "transientDocuments",
+                contentType: mimeType);
+            MultipartFormDataContent content = new MultipartFormDataContent();
             content.Add(new StringContent(mimeType), "Mime-Type");
             content.Add(new StringContent(fileName), "File-Name");
             content.Add(new ByteArrayContent(fileData),"File", fileName);
+            requestMessage.Content = content;
 
-            HttpResponseMessage response = httpClient.PostAsync("transientDocuments", content).Result;
-
-            TransientDocumentResponse res = ParseResponse<TransientDocumentResponse>(response);
-            return res.TransientDocumentId;
+            HttpResponseMessage httpResponse = SendAsync(requestMessage);
+            var response = ParseResponse<TransientDocumentResponse>(httpResponse);
+            return response.TransientDocumentId;
         }
 
-        public static string CreateAgreement(AdobeSignConnection connection, AdobeSignAgreementInfo agreementInfo)
+        public static string CreateAgreement(
+            string accessTokenData, 
+            AdobeSignAgreementInfo agreementInfo)
         {
-            AdobeSignAgreementCreationResponse res = PostRequest<AdobeSignAgreementCreationResponse, AdobeSignAgreementInfo>(connection, "agreements", agreementInfo);
-            return res.Id;
+            if (string.IsNullOrEmpty(accessTokenData)) 
+                throw new ArgumentNullException(nameof(accessTokenData), $"{nameof(accessTokenData)} cannot be null or empty");
+            if (agreementInfo == null)
+                throw new ArgumentNullException(nameof(agreementInfo), $"{nameof(agreementInfo)} is required");
+ 
+            HttpRequestMessage requestMessage = BuildHttpPostRequestMessage(
+                accessTokenData: accessTokenData,
+                methodUri: "agreements", 
+                contentType: "application/json; charset=utf-8");
+            requestMessage.Content = new StringContent(
+                JsonConvert.SerializeObject(agreementInfo, Formatting.None, JsonSettings),
+                Encoding.UTF8,
+                "application/json");
+            
+            HttpResponseMessage httpResponse = SendAsync(requestMessage);
+            var response = ParseResponse<AdobeSignAgreementCreationResponse>(httpResponse);
+            return response.Id;
         }
 
-        public static AdobeSignAgreementInfo GetAgreementInfo(AdobeSignConnection connection, string agreementId)
+        public static AdobeSignAgreementInfo GetAgreementInfo(
+            string accessTokenData, 
+            string agreementId)
         {
-            if (string.IsNullOrEmpty(agreementId))
-                throw new ArgumentNullException("agreementId cannot be null nor empty");
+            if (string.IsNullOrEmpty(accessTokenData)) 
+                throw new ArgumentNullException(nameof(accessTokenData), $"{nameof(accessTokenData)} cannot be null or empty");
+            if (string.IsNullOrEmpty(agreementId)) 
+                throw new ArgumentNullException(nameof(agreementId), $"{nameof(agreementId)} cannot be null or empty");
 
-            AdobeSignAgreementInfo res = GetRequest<AdobeSignAgreementInfo>(connection, $"agreements/{agreementId}");
-            return res;
+            HttpRequestMessage requestMessage = BuildHttpGetRequestMessage(
+                accessTokenData: accessTokenData,
+                methodUri: $"agreements/{agreementId}",
+                mediaType: "application/json",
+                contentType: "application/json; charset=utf-8");
+
+            HttpResponseMessage httpResponse = SendAsync(requestMessage);
+            var response = ParseResponse<AdobeSignAgreementInfo>(httpResponse);
+            return response;
         }
 
-        public static void GetTransientDocument(AdobeSignConnection connection, string agreementId, string filePath)
-        {
-            if (string.IsNullOrEmpty(agreementId))
-                throw new ArgumentNullException("agreementId cannot be null nor empty");
-            if (string.IsNullOrEmpty(filePath))
-                throw new ArgumentNullException("filePath cannot be null nor empty");
-
-            HttpClient httpClient = GetClient(connection);
-            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/PDF");
-            HttpResponseMessage response = httpClient.GetAsync($"agreements/{agreementId}/combinedDocument").Result;
-            CheckResponse(response);
-
-            byte[] bytes = response.Content.ReadAsByteArrayAsync().Result;
-            System.IO.File.WriteAllBytes(filePath, bytes);
-        }
-
-        // the region dynamic uri should not ever change for a token and therefore does not really need to be called more than once per token instance
-        private static Dictionary<string, AdobeSignBaseUriInfo> baseUriTokenCache;
         
-        private const string baseAddressUrisLookup = "https://api.na3.adobesign.com:443/";
-
-        public static AdobeSignBaseUriInfo GetBaseUriInfo(string tokenId, string tokenData)
+        public static void GetTransientDocument(
+            string accessTokenData, 
+            string agreementId, 
+            string filePath)
         {
-            baseUriTokenCache ??= new Dictionary<string, AdobeSignBaseUriInfo>();
-            
-            // attempt to lookup in cache first. Since a token will never change dynamic region, we should not check more than once for a token per decisions instance
-            if (baseUriTokenCache.TryGetValue(tokenId, out var info))
-                return info;
-            
-            // else use the officially supplied region-agnostic url to pull the appropriate dynamic uri's info for this token
-            AdobeSignConnection connection = new AdobeSignConnection()
+            if (string.IsNullOrEmpty(accessTokenData)) 
+                throw new ArgumentNullException(nameof(accessTokenData), $"{nameof(accessTokenData)} cannot be null or empty");
+            if (string.IsNullOrEmpty(agreementId)) 
+                throw new ArgumentNullException(nameof(agreementId), $"{nameof(agreementId)} cannot be null or empty");
+            if (string.IsNullOrEmpty(filePath)) 
+                throw new ArgumentNullException(nameof(filePath), $"{nameof(filePath)} cannot be null or empty");
+
+            HttpRequestMessage requestMessage = BuildHttpGetRequestMessage(
+                accessTokenData: accessTokenData,
+                methodUri: $"agreements/{agreementId}/combinedDocument",
+                mediaType: "application/PDF");
+
+            HttpContent httpContent = SendAsync(requestMessage).Content;
+            try
             {
-                BaseAddress = baseAddressUrisLookup,
-                AccessToken = tokenData
-            };
-            AdobeSignBaseUriInfo result = GetRequest<AdobeSignBaseUriInfo>(connection, "baseUris");
-            
-            if (string.IsNullOrWhiteSpace(result.apiAccessPoint) || string.IsNullOrWhiteSpace(result.webAccessPoint))
-                throw new LoggedException($"No valid response from {baseAddressUrisLookup}api/rest/v6/baseUris, try refreshing your OAuth Token");
-
-            baseUriTokenCache.Add(tokenId, result);
-            return result;
+                byte[] bytes = httpContent.ReadAsByteArrayAsync().Result;
+                System.IO.File.WriteAllBytes(filePath, bytes);
+            }
+            catch (Exception ex)
+            {
+                throw new LoggedException($"Could not write resulting document to '{filePath}'", ex);
+            }
         }
-
     }
 }
