@@ -6,34 +6,53 @@ using DecisionsFramework.Design.Flow.Mapping;
 using DecisionsFramework.Design.Properties;
 using System.IO;
 using System.Linq;
+using Decisions.OAuth;
+using DecisionsFramework.ServiceLayer.Services.ContextData;
 
 namespace Decisions.AdobeSign
 {
-    [AutoRegisterStep("Create Agreement", AdobeSignCategory)]
+    [AutoRegisterStep("Create Agreement", STEP_PARAMS_CATEGORY)]
     [Writable]
     public class CreateAgreement : AbstractStep
     {
-        [PropertyHidden]
-        public override DataDescription[] InputData => new[]
-            { new DataDescription(typeof(AdobeSignAgreementCreationData), AgreementCreationDataLabel) };
+        private const string RESULT_PATH = "Result";
+        private const string INPUT_NAME_DATA = "Agreement Data";
+        private const string OUTCOME_NAME_DATA = "Agreement Id";
 
         [PropertyHidden]
-        protected override OutcomeScenarioData SuccessOutcomeScenarioData =>
-            new(ResultOutcomeLabel, new DataDescription(typeof(string), AgreementIdLabel));
-
-        protected override void ExecuteStep(StepStartData data)
+        public override DataDescription[] InputData => new DataDescription[]
         {
-            AdobeSignAgreementCreationData agreementData = 
-                (AdobeSignAgreementCreationData)data.Data[AgreementCreationDataLabel];
+            new (typeof(AdobeSignAgreementCreationData), INPUT_NAME_DATA)
+        };
+ 
+        protected override OutcomeScenarioData[] GetOutcomeScenarios()
+        {
+            return new OutcomeScenarioData[]
+            {
+                new (RESULT_PATH, new DataDescription(typeof(string), OUTCOME_NAME_DATA))
+            };
+        }  
+
+        protected override ResultData ExecuteStep(
+            StepStartData data, 
+            OAuthToken token)
+        {
+            var agreementData = (AdobeSignAgreementCreationData)data.Data[INPUT_NAME_DATA]; 
             string transientDocumentId = AdobeSignApi.CreateTransientDocument(
-                accessTokenData: Token, 
+                token, 
                 fileData: File.ReadAllBytes(agreementData.FilePath), 
                 fileName: Path.GetFileName(agreementData.FilePath));
-            AdobeSignApi.CreateAgreement(Token, ExtractCreationData(agreementData, transientDocumentId));
-        }
+            string agreementId = AdobeSignApi.CreateAgreement(
+                token, 
+                agreementInfo: ExtractCreationData(agreementData, transientDocumentId));
+            return new ResultData(
+                RESULT_PATH, 
+                new [] { new DataPair(OUTCOME_NAME_DATA, agreementId) });
+        } 
 
         private static AdobeSignAgreementInfo ExtractCreationData(
-            AdobeSignAgreementCreationData creationData, string transientDocumentId)
+            AdobeSignAgreementCreationData creationData, 
+            string transientDocumentId)
         {
             switch (creationData.InfoType)
             {
@@ -47,7 +66,8 @@ namespace Decisions.AdobeSign
         }
 
         private static AdobeSignAgreementInfo ExtractCreationDataFull(
-            AdobeSignAgreementCreationData creationData, string transientDocumentId)
+            AdobeSignAgreementCreationData creationData, 
+            string transientDocumentId)
         {
             creationData.FullAgreementInfo.FileInfos = new[]
             {
@@ -57,7 +77,8 @@ namespace Decisions.AdobeSign
         }
 
         private static AdobeSignAgreementInfo ExtractCreationDataSimplified(
-            AdobeSignAgreementCreationData creationData, string transientDocumentId)
+            AdobeSignAgreementCreationData creationData, 
+            string transientDocumentId)
         {
             var adobeSignAgreementInfo = new AdobeSignAgreementInfo
             {

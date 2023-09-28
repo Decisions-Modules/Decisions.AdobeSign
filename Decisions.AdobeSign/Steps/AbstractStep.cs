@@ -7,82 +7,82 @@ using DecisionsFramework.Design.Flow.Mapping;
 using DecisionsFramework.Design.Properties;
 using DecisionsFramework.Design.Properties.Attributes;
 using DecisionsFramework.ServiceLayer.Services.ContextData;
-using System;
-using System.Linq;
+using System; 
 
 namespace Decisions.AdobeSign
 {
     [Writable]
     public abstract class AbstractStep : ISyncStep, IDataConsumer, IValidationSource
     {
-        protected const string AdobeSignCategory = "Integration/AdobeSign";
-        protected const string ResultOutcomeLabel = "Result";
-        protected const string AgreementCreationDataLabel = "Agreement Data";
-        protected const string AgreementIdLabel = "Agreement Id";
-        protected const string AgreementInfoLabel = "Agreement Info";
-        protected const string FilePathLabel = "File Path";
-        private const string ErrorOutcomeLabel = "Error";
-        private const string ErrorOutcomeDataLabel = "Error info";
+        protected const string STEP_PARAMS_CATEGORY = "Integration/AdobeSign";
+        private const string ERROR_PATH = "Error";
+        private const string ERROR_NAME_DATA = "Error Info"; 
+
 
         [PropertyHidden] 
         public abstract DataDescription[] InputData { get; }
 
-        public OutcomeScenarioData[] OutcomeScenarios => 
-            new[] { 
-                new OutcomeScenarioData(
-                    ErrorOutcomeLabel, 
-                    new DataDescription(typeof(AdobeSignErrorInfo), ErrorOutcomeDataLabel)),
-                SuccessOutcomeScenarioData
-            };
+        protected abstract OutcomeScenarioData[] GetOutcomeScenarios();
 
-        [PropertyHidden] 
-        protected abstract OutcomeScenarioData SuccessOutcomeScenarioData { get; }
+        public OutcomeScenarioData[] OutcomeScenarios 
+        {
+            get
+            {
+                OutcomeScenarioData[] scenarios = GetOutcomeScenarios();
+                var result = new OutcomeScenarioData[scenarios.Length + 1];
+                result[0] = new OutcomeScenarioData(
+                    ERROR_PATH, new DataDescription(typeof(AdobeSignErrorInfo), ERROR_NAME_DATA));
+                Array.Copy(scenarios, 0, result, 1, scenarios.Length);
+                return result;
+            }
+        }
 
         [TokenPicker]
         [WritableValue]
         public string Token { get; set; }
 
+        protected abstract ResultData ExecuteStep(StepStartData data, OAuthToken token);
+
         public ResultData Run(StepStartData data)
         {
-            if (OutcomeScenarios.Length <= 1)
-                throw new LoggedException("This step has an internal error; more than one outcome paths expected");
-           
+            if (string.IsNullOrWhiteSpace(Token))
+                throw new ArgumentException("Token is missing / invalid");
             try
             {
-                ExecuteStep(data);
-                return new ResultData(OutcomeScenarios.Last().ExitPointName);
+                OAuthToken token = FetchOAuthToken(Token);
+                return ExecuteStep(data, token);
             }
             catch (Exception ex)
             {
-                AdobeSignErrorInfo errInfo = AdobeSignErrorInfo.FromException(ex);
                 return new ResultData(
-                    ErrorOutcomeLabel, 
-                    new[] { new DataPair(ErrorOutcomeDataLabel, errInfo) });
-            }
-        }
-
-        protected abstract void ExecuteStep(StepStartData data);
+                    resultPath: ERROR_PATH, 
+                    values: new[] { new DataPair(ERROR_NAME_DATA, AdobeSignErrorInfo.FromException(ex)) });
+            } 
+        } 
 
         public ValidationIssue[] GetValidationIssues()
         {
             if (Token == null)
-                return new[] { new ValidationIssue("Token is missing / invalid") };
-
+                return new[] { new ValidationIssue("Token cannot be null") };
             try
-            { 
-                OAuthToken oAuthToken = new ORM<OAuthToken>().Fetch(Token);
-                if (oAuthToken == null)
-                    throw new EntityNotFoundException($"Can not find token with TokenId=\"{Token}\"");
-                if (oAuthToken.TokenData == null)
-                    throw new LoggedException($"Token Entity '{oAuthToken.EntityName}' has no AccessToken itself.");
+            {
+                FetchOAuthToken(Token);
             }
             catch (Exception ex)
             {
                 return new[] { new ValidationIssue(ex.Message) };
             }
-            
             return Array.Empty<ValidationIssue>();
         }
 
+        private static OAuthToken FetchOAuthToken(string tokenId)
+        {
+            OAuthToken token = new ORM<OAuthToken>().Fetch(tokenId);
+            if (token == null || token.Deleted)
+                throw new EntityNotFoundException($"Can not find token with TokenId=\"{tokenId}\"");
+            if (token.TokenData == null)
+                throw new LoggedException($"Token Entity '{token.EntityName}' has no AccessToken itself.");
+            return token; 
+        }
     }
 }

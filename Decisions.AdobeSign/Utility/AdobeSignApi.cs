@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Text;
+using Decisions.OAuth;
 using DecisionsFramework;
 using Newtonsoft.Json;
 
@@ -8,24 +9,22 @@ namespace Decisions.AdobeSign.Utility
 {
     public static partial class AdobeSignApi
     {
+        private const string URI_API_PART = "/api/rest/v6/";
+        
         public static string CreateTransientDocument(
-            string accessTokenData, 
+            OAuthToken token, 
             byte[] fileData, 
             string fileName, 
             string mimeType = "application/PDF")
         {
-            if (string.IsNullOrEmpty(accessTokenData)) 
-                throw new ArgumentNullException(nameof(accessTokenData), $"{nameof(accessTokenData)} cannot be null or empty");
-            if (fileData == null)
-                throw new ArgumentNullException(nameof(fileData), $"{nameof(fileData)} is missing");
-            if (string.IsNullOrEmpty(fileName)) 
-                throw new ArgumentNullException(nameof(fileName), $"{nameof(fileName)} cannot be null or empty");
-            if (string.IsNullOrEmpty(mimeType))
-                throw new ArgumentNullException(nameof(mimeType), $"{nameof(mimeType)} cannot be null or empty");
+            ThrowIfNullOrEmpty(token);
+            ThrowIfNullOrEmpty(fileData);
+            ThrowIfNullOrEmpty(fileName);
+            ThrowIfNullOrEmpty(mimeType); 
             
             HttpRequestMessage requestMessage = BuildHttpPostRequestMessage(
-                accessTokenData: accessTokenData,
-                methodUri: "transientDocuments",
+                token,
+                url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}transientDocuments",
                 contentType: mimeType);
             MultipartFormDataContent content = new MultipartFormDataContent();
             content.Add(new StringContent(mimeType), "Mime-Type");
@@ -39,17 +38,15 @@ namespace Decisions.AdobeSign.Utility
         }
 
         public static string CreateAgreement(
-            string accessTokenData, 
+            OAuthToken token, 
             AdobeSignAgreementInfo agreementInfo)
         {
-            if (string.IsNullOrEmpty(accessTokenData)) 
-                throw new ArgumentNullException(nameof(accessTokenData), $"{nameof(accessTokenData)} cannot be null or empty");
-            if (agreementInfo == null)
-                throw new ArgumentNullException(nameof(agreementInfo), $"{nameof(agreementInfo)} is required");
+            ThrowIfNullOrEmpty(token);
+            ThrowIfNullOrEmpty(agreementInfo);
  
             HttpRequestMessage requestMessage = BuildHttpPostRequestMessage(
-                accessTokenData: accessTokenData,
-                methodUri: "agreements", 
+                token,
+                url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}agreements", 
                 contentType: "application/json; charset=utf-8");
             requestMessage.Content = new StringContent(
                 JsonConvert.SerializeObject(agreementInfo, Formatting.None, JsonSettings),
@@ -57,22 +54,19 @@ namespace Decisions.AdobeSign.Utility
                 "application/json");
             
             HttpResponseMessage httpResponse = SendAsync(requestMessage);
-            var response = ParseResponse<AdobeSignAgreementCreationResponse>(httpResponse);
-            return response.Id;
+            return ParseResponse<AdobeSignAgreementCreationResponse>(httpResponse).Id;
         }
 
         public static AdobeSignAgreementInfo GetAgreementInfo(
-            string accessTokenData, 
+            OAuthToken token,
             string agreementId)
         {
-            if (string.IsNullOrEmpty(accessTokenData)) 
-                throw new ArgumentNullException(nameof(accessTokenData), $"{nameof(accessTokenData)} cannot be null or empty");
-            if (string.IsNullOrEmpty(agreementId)) 
-                throw new ArgumentNullException(nameof(agreementId), $"{nameof(agreementId)} cannot be null or empty");
+            ThrowIfNullOrEmpty(token);
+            ThrowIfNullOrEmpty(agreementId); 
 
             HttpRequestMessage requestMessage = BuildHttpGetRequestMessage(
-                accessTokenData: accessTokenData,
-                methodUri: $"agreements/{agreementId}",
+                token,
+                url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}agreements/{agreementId}",
                 mediaType: "application/json",
                 contentType: "application/json; charset=utf-8");
 
@@ -83,25 +77,21 @@ namespace Decisions.AdobeSign.Utility
 
         
         public static void GetTransientDocument(
-            string accessTokenData, 
+            OAuthToken token,
             string agreementId, 
             string filePath)
         {
-            if (string.IsNullOrEmpty(accessTokenData)) 
-                throw new ArgumentNullException(nameof(accessTokenData), $"{nameof(accessTokenData)} cannot be null or empty");
-            if (string.IsNullOrEmpty(agreementId)) 
-                throw new ArgumentNullException(nameof(agreementId), $"{nameof(agreementId)} cannot be null or empty");
-            if (string.IsNullOrEmpty(filePath)) 
-                throw new ArgumentNullException(nameof(filePath), $"{nameof(filePath)} cannot be null or empty");
+            ThrowIfNullOrEmpty(token);
+            ThrowIfNullOrEmpty(agreementId);
+            ThrowIfNullOrEmpty(filePath);
 
-            HttpRequestMessage requestMessage = BuildHttpGetRequestMessage(
-                accessTokenData: accessTokenData,
-                methodUri: $"agreements/{agreementId}/combinedDocument",
-                mediaType: "application/PDF");
-
-            HttpContent httpContent = SendAsync(requestMessage).Content;
             try
             {
+                HttpRequestMessage requestMessage = BuildHttpGetRequestMessage(
+                    token, 
+                    url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}agreements/{agreementId}/combinedDocument",
+                    mediaType: "application/PDF");
+                HttpContent httpContent = SendAsync(requestMessage).Content;
                 byte[] bytes = httpContent.ReadAsByteArrayAsync().Result;
                 System.IO.File.WriteAllBytes(filePath, bytes);
             }

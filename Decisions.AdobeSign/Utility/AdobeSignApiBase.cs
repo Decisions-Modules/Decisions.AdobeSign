@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
+using Decisions.OAuth;
 using DecisionsFramework;
 using DecisionsFramework.Utilities.Data;
 using Newtonsoft.Json;
@@ -20,17 +22,15 @@ namespace Decisions.AdobeSign.Utility
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc
             };
         
-        private static string ToFullUri(string accessTokenData, string methodUri)
+        private static string FetchBaseUriFromWeb(OAuthToken token)
         {
             AdobeSignBaseUriInfo result;
             try
             {
-                HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, BaseUrisUrl);
-                SetupHttpRequestMessage(
-                    requestMessage: requestMessage,
-                    accessTokenData: accessTokenData,
-                    mediaType: "application/json",
-                    contentType: "application/json; charset=utf-8");
+                HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, BaseUrisUrl); 
+                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
+                requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")); 
+                requestMessage.Headers.TryAddWithoutValidation("Content-Type", "application/json; charset=utf-8");
                 HttpResponseMessage httpResponseMessage = SendAsync(requestMessage);
                 result = ParseResponse<AdobeSignBaseUriInfo>(httpResponseMessage);
             }
@@ -40,8 +40,7 @@ namespace Decisions.AdobeSign.Utility
             }
             if (result == null || string.IsNullOrWhiteSpace(result.apiAccessPoint))
                 throw new LoggedException($"No valid response from AdobeSign API, try refreshing your OAuth Token");
-            // remove trailing '/' from return if applicable, apply api rest endpoint postfix, apply method uri portion
-            return $"{result.apiAccessPoint.TrimStart('/')}/api/rest/v6/{methodUri}";
+            return result.apiAccessPoint.TrimEnd('/');
         } 
 
         private static TR ParseResponse<TR>(HttpResponseMessage response) where TR : new()
@@ -63,37 +62,40 @@ namespace Decisions.AdobeSign.Utility
         }
 
         private static HttpRequestMessage BuildHttpGetRequestMessage(
-            string accessTokenData,
-            string methodUri,
+            OAuthToken token,
+            string url,
             string mediaType,
             string contentType = null)
         {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, ToFullUri(accessTokenData, methodUri));
-            SetupHttpRequestMessage(requestMessage, accessTokenData, mediaType, contentType);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
+            requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
+            if (contentType != null)
+                requestMessage.Headers.TryAddWithoutValidation("Content-Type", contentType);
             return requestMessage;
         }
         
         private static HttpRequestMessage BuildHttpPostRequestMessage(
-            string accessTokenData,
-            string methodUri,
+            OAuthToken token,
+            string url,
             string contentType = null)
         {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, ToFullUri(accessTokenData, methodUri));
-            SetupHttpRequestMessage(requestMessage, accessTokenData, "application/json", contentType);
-            return requestMessage;
-        }
-
-        private static void SetupHttpRequestMessage(
-            HttpRequestMessage requestMessage,
-            string accessTokenData,
-            string mediaType,
-            string contentType)
-        {
-            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessTokenData);
-            requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
+            requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (contentType != null)
                 requestMessage.Headers.TryAddWithoutValidation("Content-Type", contentType);
+            return requestMessage;
+        } 
+        
+        private static void ThrowIfNullOrEmpty(
+            object value, 
+            [CallerArgumentExpression("value")] string argName = null)
+        {
+            if (value is string str && string.IsNullOrWhiteSpace(str))
+                throw new ArgumentNullException($"{argName} cannot be null or empty");
+            if (value == null || (value.GetType().IsArray && ((object[])value).Length == 0))
+                throw new ArgumentNullException($"{argName} is required");
         }
-            
     }
 }
