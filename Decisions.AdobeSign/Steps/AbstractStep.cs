@@ -28,11 +28,15 @@ namespace Decisions.AdobeSign
         {
             get
             {
+                // grab the implementing class instance scenarios (1 or more), initialize result array to include +error
                 OutcomeScenarioData[] scenarios = GetOutcomeScenarios();
                 var result = new OutcomeScenarioData[scenarios.Length + 1];
+                // but the error scenario in the first index
                 result[0] = new OutcomeScenarioData(
                     ERROR_PATH, new DataDescription(typeof(AdobeSignErrorInfo), ERROR_NAME_DATA));
-                Array.Copy(scenarios, 0, result, 1, scenarios.Length);
+                // append the other scenarios one index behind
+                for (int ii = 0; ii < scenarios.Length; ii++)
+                    result[ii + 1] = scenarios[ii];
                 return result;
             }
         }
