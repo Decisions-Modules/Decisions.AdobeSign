@@ -28,10 +28,10 @@ namespace Decisions.AdobeSign
         {
             get
             {
-                // grab the implementing class instance scenarios (1 or more), initialize result array to include +error
+                // grab the implementing class instance scenarios (1 or more), resulting array is one bigger for error path
                 OutcomeScenarioData[] scenarios = GetOutcomeScenarios();
                 var result = new OutcomeScenarioData[scenarios.Length + 1];
-                // but the error scenario in the first index
+                // put the error scenario in the first index
                 result[0] = new OutcomeScenarioData(
                     ERROR_PATH, new DataDescription(typeof(AdobeSignErrorInfo), ERROR_NAME_DATA));
                 // append the other scenarios one index behind
