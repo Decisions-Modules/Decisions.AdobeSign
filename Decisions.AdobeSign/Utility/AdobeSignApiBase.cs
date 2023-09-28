@@ -28,8 +28,7 @@ namespace Decisions.AdobeSign.Utility
             {
                 HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, BaseUrisUrl);
                 requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
-                requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                //requestMessage.Headers.TryAddWithoutValidation("Content-Type", "application/json; charset=utf-8");
+                requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")); 
                 HttpResponseMessage httpResponseMessage = SendAsync(requestMessage);
                 result = ParseResponse<AdobeSignBaseUriInfo>(httpResponseMessage);
             }
@@ -63,27 +62,21 @@ namespace Decisions.AdobeSign.Utility
         private static HttpRequestMessage BuildHttpGetRequestMessage(
             OAuthToken token,
             string url,
-            string mediaType,
-            string contentType = null)
+            string mediaType)
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
             requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
-            if (contentType != null)
-                requestMessage.Headers.TryAddWithoutValidation("Content-Type", contentType);
             return requestMessage;
         }
         
         private static HttpRequestMessage BuildHttpPostRequestMessage(
             OAuthToken token,
-            string url,
-            string contentType = null)
+            string url)
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
             requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            if (contentType != null)
-                requestMessage.Headers.TryAddWithoutValidation("Content-Type", contentType);
             return requestMessage;
         } 
     }

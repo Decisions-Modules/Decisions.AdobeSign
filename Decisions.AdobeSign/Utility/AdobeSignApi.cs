@@ -25,8 +25,7 @@ namespace Decisions.AdobeSign.Utility
             
             HttpRequestMessage requestMessage = BuildHttpPostRequestMessage(
                 token,
-                url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}transientDocuments",
-                contentType: mimeType);
+                url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}transientDocuments");
             MultipartFormDataContent content = new MultipartFormDataContent();
             content.Add(new StringContent(mimeType), "Mime-Type");
             content.Add(new StringContent(fileName), "File-Name");
@@ -47,8 +46,7 @@ namespace Decisions.AdobeSign.Utility
  
             HttpRequestMessage requestMessage = BuildHttpPostRequestMessage(
                 token,
-                url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}agreements", 
-                contentType: "application/json; charset=utf-8");
+                url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}agreements");
             requestMessage.Content = new StringContent(
                 JsonConvert.SerializeObject(agreementInfo, Formatting.None, JsonSettings),
                 Encoding.UTF8,
@@ -68,8 +66,7 @@ namespace Decisions.AdobeSign.Utility
             HttpRequestMessage requestMessage = BuildHttpGetRequestMessage(
                 token,
                 url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}agreements/{agreementId}",
-                mediaType: "application/json",
-                contentType: "application/json; charset=utf-8");
+                mediaType: "application/json");
 
             HttpResponseMessage httpResponse = SendAsync(requestMessage);
             var response = ParseResponse<AdobeSignAgreementInfo>(httpResponse);
