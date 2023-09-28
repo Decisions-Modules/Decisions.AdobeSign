@@ -7,7 +7,8 @@ using DecisionsFramework.Design.Flow.Mapping;
 using DecisionsFramework.Design.Properties;
 using DecisionsFramework.Design.Properties.Attributes;
 using DecisionsFramework.ServiceLayer.Services.ContextData;
-using System; 
+using System;
+using System.Collections.Generic;
 
 namespace Decisions.AdobeSign
 {
@@ -17,8 +18,7 @@ namespace Decisions.AdobeSign
         protected const string STEP_PARAMS_CATEGORY = "Integration/AdobeSign";
         private const string ERROR_PATH = "Error";
         private const string ERROR_NAME_DATA = "Error Info"; 
-
-
+        
         [PropertyHidden] 
         public abstract DataDescription[] InputData { get; }
 
@@ -28,16 +28,12 @@ namespace Decisions.AdobeSign
         {
             get
             {
-                // grab the implementing class instance scenarios (1 or more), resulting array is one bigger for error path
-                OutcomeScenarioData[] scenarios = GetOutcomeScenarios();
-                var result = new OutcomeScenarioData[scenarios.Length + 1];
-                // put the error scenario in the first index
-                result[0] = new OutcomeScenarioData(
-                    ERROR_PATH, new DataDescription(typeof(AdobeSignErrorInfo), ERROR_NAME_DATA));
-                // append the other scenarios one index behind
-                for (int ii = 0; ii < scenarios.Length; ii++)
-                    result[ii + 1] = scenarios[ii];
-                return result;
+                List<OutcomeScenarioData> output = new List<OutcomeScenarioData>()
+                { 
+                    new (ERROR_PATH, new DataDescription(typeof(AdobeSignErrorInfo), ERROR_NAME_DATA))
+                };
+                output.AddRange(GetOutcomeScenarios());
+                return output.ToArray();
             }
         }
 
@@ -82,7 +78,7 @@ namespace Decisions.AdobeSign
         private static OAuthToken FetchOAuthToken(string tokenId)
         {
             OAuthToken token = new ORM<OAuthToken>().Fetch(tokenId);
-            if (token == null || token.Deleted)
+            if (token == null)
                 throw new EntityNotFoundException($"Can not find token with TokenId=\"{tokenId}\"");
             if (token.TokenData == null)
                 throw new LoggedException($"Token Entity '{token.EntityName}' has no AccessToken itself.");

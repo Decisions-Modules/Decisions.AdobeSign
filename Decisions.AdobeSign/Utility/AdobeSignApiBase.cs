@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using Decisions.OAuth;
 using DecisionsFramework;
 using DecisionsFramework.Utilities.Data;
@@ -27,9 +26,9 @@ namespace Decisions.AdobeSign.Utility
             AdobeSignBaseUriInfo result;
             try
             {
-                HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, BaseUrisUrl); 
+                HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, BaseUrisUrl);
                 requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
-                requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")); 
+                requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 requestMessage.Headers.TryAddWithoutValidation("Content-Type", "application/json; charset=utf-8");
                 HttpResponseMessage httpResponseMessage = SendAsync(requestMessage);
                 result = ParseResponse<AdobeSignBaseUriInfo>(httpResponseMessage);
@@ -87,15 +86,5 @@ namespace Decisions.AdobeSign.Utility
                 requestMessage.Headers.TryAddWithoutValidation("Content-Type", contentType);
             return requestMessage;
         } 
-        
-        private static void ThrowIfNullOrEmpty(
-            object value, 
-            [CallerArgumentExpression("value")] string argName = null)
-        {
-            if (value is string str && string.IsNullOrWhiteSpace(str))
-                throw new ArgumentNullException($"{argName} cannot be null or empty");
-            if (value == null || (value.GetType().IsArray && ((object[])value).Length == 0))
-                throw new ArgumentNullException($"{argName} is required");
-        }
     }
 }

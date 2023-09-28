@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Decisions.OAuth;
 using DecisionsFramework;
@@ -20,7 +21,7 @@ namespace Decisions.AdobeSign.Utility
             ThrowIfNullOrEmpty(token);
             ThrowIfNullOrEmpty(fileData);
             ThrowIfNullOrEmpty(fileName);
-            ThrowIfNullOrEmpty(mimeType); 
+            ThrowIfNullOrEmpty(mimeType);
             
             HttpRequestMessage requestMessage = BuildHttpPostRequestMessage(
                 token,
@@ -62,7 +63,7 @@ namespace Decisions.AdobeSign.Utility
             string agreementId)
         {
             ThrowIfNullOrEmpty(token);
-            ThrowIfNullOrEmpty(agreementId); 
+            ThrowIfNullOrEmpty(agreementId);
 
             HttpRequestMessage requestMessage = BuildHttpGetRequestMessage(
                 token,
@@ -74,7 +75,6 @@ namespace Decisions.AdobeSign.Utility
             var response = ParseResponse<AdobeSignAgreementInfo>(httpResponse);
             return response;
         }
-
         
         public static void GetTransientDocument(
             OAuthToken token,
@@ -99,6 +99,16 @@ namespace Decisions.AdobeSign.Utility
             {
                 throw new LoggedException($"Could not write resulting document to '{filePath}'", ex);
             }
+        }
+        
+        public static void ThrowIfNullOrEmpty(
+            object value, 
+            [CallerArgumentExpression("value")] string argName = null)
+        {
+            if (value is string str && string.IsNullOrWhiteSpace(str))
+                throw new ArgumentNullException($"{argName} cannot be null or empty");
+            if (value == null)
+                throw new ArgumentNullException($"{argName} is required");
         }
     }
 }

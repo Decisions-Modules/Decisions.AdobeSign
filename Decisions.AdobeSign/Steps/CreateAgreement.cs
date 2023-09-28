@@ -37,16 +37,19 @@ namespace Decisions.AdobeSign
             StepStartData data, 
             OAuthToken token)
         {
-            var agreementData = (AdobeSignAgreementCreationData)data.Data[INPUT_NAME_DATA]; 
+            var agreementData = (AdobeSignAgreementCreationData)data.Data[INPUT_NAME_DATA];
+            AdobeSignApi.ThrowIfNullOrEmpty(agreementData);
+            
             string transientDocumentId = AdobeSignApi.CreateTransientDocument(
                 token, 
-                fileData: File.ReadAllBytes(agreementData.FilePath), 
+                fileData: File.ReadAllBytes(agreementData.FilePath),
                 fileName: Path.GetFileName(agreementData.FilePath));
             string agreementId = AdobeSignApi.CreateAgreement(
                 token, 
                 agreementInfo: ExtractCreationData(agreementData, transientDocumentId));
+            
             return new ResultData(
-                RESULT_PATH, 
+                RESULT_PATH,
                 new [] { new DataPair(OUTCOME_NAME_DATA, agreementId) });
         } 
 

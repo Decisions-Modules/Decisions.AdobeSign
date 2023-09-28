@@ -15,8 +15,7 @@ namespace Decisions.AdobeSign.Steps
         private const string RESULT_PATH = "Done";
         private const string INPUT_NAME_FILE_PATH = "File Path";
         private const string INPUT_NAME_AGREEMENT_ID = "Agreement Id";
-        
-        
+
         [PropertyHidden]
         public override DataDescription[] InputData => new DataDescription[] 
         { 
