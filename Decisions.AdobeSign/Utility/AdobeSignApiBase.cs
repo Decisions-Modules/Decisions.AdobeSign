@@ -29,7 +29,7 @@ namespace Decisions.AdobeSign.Utility
                 HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, BaseUrisUrl);
                 requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
                 requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                requestMessage.Headers.TryAddWithoutValidation("Content-Type", "application/json; charset=utf-8");
+                //requestMessage.Headers.TryAddWithoutValidation("Content-Type", "application/json; charset=utf-8");
                 HttpResponseMessage httpResponseMessage = SendAsync(requestMessage);
                 result = ParseResponse<AdobeSignBaseUriInfo>(httpResponseMessage);
             }
