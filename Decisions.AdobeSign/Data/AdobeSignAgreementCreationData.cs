@@ -1,9 +1,12 @@
 ﻿using DecisionsFramework.Design.Properties;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Decisions.AdobeSign
 {
     [DataContract]
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum AdobeSignAgreementCreationType
     {
         [EnumMember] Simplified, 
