@@ -1,101 +1,118 @@
-﻿using Decisions.AdobeSign.Utility;
+﻿using System;
+using Decisions.AdobeSign.Utility;
 using DecisionsFramework.Design.ConfigurationStorage.Attributes;
 using DecisionsFramework.Design.Flow;
 using DecisionsFramework.Design.Flow.Mapping;
 using DecisionsFramework.Design.Properties;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Decisions.OAuth;
+using DecisionsFramework.ServiceLayer.Services.ContextData;
 
 namespace Decisions.AdobeSign
 {
-    [AutoRegisterStep("Create Agreement", adobeSignCategory)]
+    [AutoRegisterStep("Create Agreement", STEP_PARAMS_CATEGORY)]
     [Writable]
     public class CreateAgreement : AbstractStep
     {
+        private const string RESULT_PATH = "Result";
+        private const string INPUT_NAME_DATA = "Agreement Data";
+        private const string OUTCOME_NAME_DATA = "Agreement Id";
+
         [PropertyHidden]
-        public override DataDescription[] InputData
+        public override DataDescription[] InputData => new DataDescription[]
         {
-            get
+            new (typeof(AdobeSignAgreementCreationData), INPUT_NAME_DATA)
+        };
+ 
+        protected override OutcomeScenarioData[] GetOutcomeScenarios()
+        {
+            return new OutcomeScenarioData[]
             {
-                var data = new DataDescription[] { new DataDescription(typeof(AdobeSignAgreementCreationData), AbstractStep.agreementCreationDataLabel), };
-                return base.InputData.Concat(data).ToArray();
+                new (RESULT_PATH, new DataDescription(typeof(string), OUTCOME_NAME_DATA))
+            };
+        }  
+
+        protected override ResultData ExecuteStep(
+            StepStartData data, 
+            OAuthToken token)
+        {
+            var agreementData = (AdobeSignAgreementCreationData)data.Data[INPUT_NAME_DATA];
+            AdobeSignApi.ThrowIfNullOrEmpty(agreementData);
+            
+            string transientDocumentId = AdobeSignApi.CreateTransientDocument(
+                token, 
+                fileData: File.ReadAllBytes(agreementData.FilePath),
+                fileName: Path.GetFileName(agreementData.FilePath));
+            string agreementId = AdobeSignApi.CreateAgreement(
+                token, 
+                agreementInfo: ExtractCreationData(agreementData, transientDocumentId));
+            
+            return new ResultData(
+                RESULT_PATH,
+                new [] { new DataPair(OUTCOME_NAME_DATA, agreementId) });
+        } 
+
+        private static AdobeSignAgreementInfo ExtractCreationData(
+            AdobeSignAgreementCreationData creationData, 
+            string transientDocumentId)
+        {
+            switch (creationData.InfoType)
+            {
+                case AdobeSignAgreementCreationType.Full:
+                    return ExtractCreationDataFull(creationData, transientDocumentId);
+                case AdobeSignAgreementCreationType.Simplified:
+                    return ExtractCreationDataSimplified(creationData, transientDocumentId);
+                default:
+                    throw new NotImplementedException();
             }
         }
 
-        public override OutcomeScenarioData[] OutcomeScenarios
+        private static AdobeSignAgreementInfo ExtractCreationDataFull(
+            AdobeSignAgreementCreationData creationData, 
+            string transientDocumentId)
         {
-            get
+            creationData.FullAgreementInfo.FileInfos = new[]
             {
-                var data = new OutcomeScenarioData[] { new OutcomeScenarioData(resultOutcomeLabel, new DataDescription(typeof(string), AgreementIdLabel)) };
-                return base.OutcomeScenarios.Concat(data).ToArray();
-            }
+                new AdobeSignFileInfo() { TransientDocumentId = transientDocumentId }
+            };
+            return creationData.FullAgreementInfo;
         }
 
-        protected override Object ExecuteStep(AdobeSignConnection conn, StepStartData data)
+        private static AdobeSignAgreementInfo ExtractCreationDataSimplified(
+            AdobeSignAgreementCreationData creationData, 
+            string transientDocumentId)
         {
-            var agreementData = (AdobeSignAgreementCreationData)data.Data[AbstractStep.agreementCreationDataLabel];
-
-            var fileData = File.ReadAllBytes(agreementData.FilePath);
-            string transientDocumentId = AdobeSignApi.CreateTransientDocument(conn, fileData, Path.GetFileName(agreementData.FilePath));
-
-            AdobeSignAgreementInfo agreementInfo = ExtractCreationData(agreementData, transientDocumentId);
-            string id = AdobeSignApi.CreateAgreement(conn, agreementInfo);
-            return id;
-        }
-
-        private AdobeSignAgreementInfo ExtractCreationData(AdobeSignAgreementCreationData creationData, string transientDocumentId)
-        {
-            if (creationData.InfoType == AdobeSignAgreementCreationType.Full)
+            var adobeSignAgreementInfo = new AdobeSignAgreementInfo
             {
-                creationData.FullAgreementInfo.FileInfos = new AdobeSignFileInfo[]
-                        {
-                            new AdobeSignFileInfo()  { TransientDocumentId = transientDocumentId }
-                        };
-                return creationData.FullAgreementInfo;
-            }
-
-            var res = new AdobeSignAgreementInfo();
-            if (creationData.Recipients != null)
-            {
-                AdobeSignParticipantSetInfo[] participantsSetInfo = new AdobeSignParticipantSetInfo[creationData.Recipients.Length];
-
-                for (int i = 0; i < creationData.Recipients.Length; i++)
+                FileInfos = new[]
                 {
-                    var recipient = creationData.Recipients[i];
-                    var participantInfo = new AdobeSignParticipantSetInfo()
-                    {
-                        MemberInfos = new AdobeSignParticipantInfo[] { new AdobeSignParticipantInfo(){Email = recipient.Email} },
-                        Name = recipient.Name,
-                        Role = AgreementParticipantRole.SIGNER,
-                        Order = i+1
-                    };
-                    participantsSetInfo[i] = participantInfo;
-
-                }
-                res.ParticipantSetsInfo = participantsSetInfo;
-            }
-
-            res.EmailOption = new AdobeSignEmailOption()
-            {
-                SendOptions = new AdobeSignSendOptions()
-                {
-                    InitEmails = AgreementEmailNotification.ALL,
-                    InFlightEmails = AgreementEmailNotification.NONE,
-                    CompletionEmails = AgreementEmailNotification.ALL,
+                    new AdobeSignFileInfo() { TransientDocumentId = transientDocumentId }
+                },
+                Name = creationData.AgreementName,
+                SignatureType = AgreementSignatureType.ESIGN,
+                State = AgreementState.IN_PROCESS,
+                EmailOption = new AdobeSignEmailOption() { 
+                    SendOptions = new AdobeSignSendOptions() { 
+                        InitEmails = AgreementEmailNotification.ALL,
+                        InFlightEmails = AgreementEmailNotification.NONE,
+                        CompletionEmails = AgreementEmailNotification.ALL 
+                    } 
                 }
             };
-
-            res.FileInfos = new AdobeSignFileInfo[]{ new AdobeSignFileInfo()  { TransientDocumentId = transientDocumentId } };
-            res.Name = creationData.AgreementName;
-            res.SignatureType = AgreementSignatureType.ESIGN;
-            res.State = AgreementState.IN_PROCESS;
-
-            return res;
+            if (creationData.Recipients != null)
+            {
+                adobeSignAgreementInfo.ParticipantSetsInfo = creationData.Recipients
+                    .Select((recipient, i) => new AdobeSignParticipantSetInfo()
+                        {
+                            MemberInfos = new[] { new AdobeSignParticipantInfo() { Email = recipient.Email } }, 
+                            Name = recipient.Name, 
+                            Role = AgreementParticipantRole.SIGNER, 
+                            Order = i + 1
+                        })
+                    .ToArray();
+            }
+            return adobeSignAgreementInfo;
         }
-
     }
 }

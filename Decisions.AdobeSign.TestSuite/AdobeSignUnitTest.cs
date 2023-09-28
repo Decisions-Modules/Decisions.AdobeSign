@@ -9,45 +9,36 @@ namespace AdobeSignature.UnitTests
 {
     [TestClass]
     public class AdobeSignUnitTest
-    {
-        private AdobeSignConnection getConnection()
-        {
-            return new AdobeSignConnection()
-            {
-                AccessToken = AuthData.AccessToken,
-                BaseAddress = AuthData.BaseUrl
-            };
-
-        }
+    { 
+        
         [TestMethod]
         public void TestAgreement()
         {
-            var conn = getConnection();
             var fileData = File.ReadAllBytes(TestData.AgreementFileName);
-            string docId = AdobeSignApi.CreateTransientDocument(conn, fileData, Path.GetFileName(TestData.AgreementFileName));
+            string docId = AdobeSignApi.CreateTransientDocument(AuthData.AccessToken, fileData, Path.GetFileName(TestData.AgreementFileName));
             Assert.IsNotNull(docId);
 
-            string agreementId = AdobeSignApi.CreateAgreement(conn, CreateAgreementInfo(docId));
+            string agreementId = AdobeSignApi.CreateAgreement(AuthData.AccessToken, CreateAgreementInfo(docId));
             Assert.IsNotNull(agreementId);
 
-            AdobeSignAgreementInfo ai = AdobeSignApi.GetAgreementInfo(conn, agreementId);
+            AdobeSignAgreementInfo ai = AdobeSignApi.GetAgreementInfo(AuthData.AccessToken, agreementId);
             AdobeSignAgreementInfo agreementInfo;
 
             do
             {
                 Thread.Sleep(10000);
-                agreementInfo = AdobeSignApi.GetAgreementInfo(conn, agreementId);
+                agreementInfo = AdobeSignApi.GetAgreementInfo(AuthData.AccessToken, agreementId);
             }
             while (agreementInfo.Status == AgreementStatus.OUT_FOR_SIGNATURE);
 
-            AdobeSignApi.GetTransientDocument(conn, agreementId, $"{TestData.SignedAgreementFileName}_{agreementId}.pdf");
+            AdobeSignApi.GetTransientDocument(AuthData.AccessToken, agreementId, $"{TestData.SignedAgreementFileName}_{agreementId}.pdf");
         }
 
         [TestMethod]
         public void TestDownloadAgreement()
         {
             string agreementId = "CBJCHBCAABAAii3YYjzAtGzuA1kCZaTrNdM0fGn31Qen";
-            AdobeSignApi.GetTransientDocument(getConnection(), agreementId, TestData.SignedAgreementFileName);
+            AdobeSignApi.GetTransientDocument(AuthData.AccessToken, agreementId, TestData.SignedAgreementFileName);
         }
 
         private AdobeSignAgreementInfo CreateAgreementInfo(string docId)

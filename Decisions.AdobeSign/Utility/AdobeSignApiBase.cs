@@ -1,89 +1,83 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
+using Decisions.OAuth;
+using DecisionsFramework;
+using DecisionsFramework.Utilities.Data;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Decisions.AdobeSign.Utility
 {
     static partial class AdobeSignApi
     {
-        private static AuthenticationHeaderValue GetAuthHeader(string accessToken)
-        {
-            return new AuthenticationHeaderValue("Bearer", accessToken);
-        }
+        private const string BaseUrisUrl = "https://api.na3.adobesign.com:443/api/rest/v6/baseUris";
 
-        private static HttpClient GetClient(AdobeSignConnection connection)
-        {
-            string baseAddr = connection.BaseAddress.TrimEnd('/') + "/api/rest/v6/";
-            HttpClient httpClient = new HttpClient { BaseAddress = new Uri(baseAddr) };
-            httpClient.DefaultRequestHeaders.Authorization = GetAuthHeader(connection.AccessToken);
-            return httpClient;
-        }
-
-        private static HttpClient GetJsonClient(AdobeSignConnection connection)
-        {
-            HttpClient httpClient = GetClient(connection);
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json; charset=utf-8");
-            return httpClient;
-        }
-
-        private static JsonSerializerSettings jsonSettings
-        {
-            get
+        private static JsonSerializerSettings JsonSettings => new()
             {
-                return new JsonSerializerSettings
-                {
-                    NullValueHandling = NullValueHandling.Ignore,
-                    ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
-                    DateFormatString = "yyyy-MM-dd'T'HH:mm:ssZ",
-                    DateTimeZoneHandling = DateTimeZoneHandling.Utc
-                };
-            }
-        }
-        private static string ParseRequestContent<T>(T content)
+                NullValueHandling = NullValueHandling.Ignore,
+                ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
+                DateFormatString = "yyyy-MM-dd'T'HH:mm:ssZ",
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc
+            };
+        
+        private static string FetchBaseUriFromWeb(OAuthToken token)
         {
-            string data = JsonConvert.SerializeObject(content, Formatting.None, jsonSettings);
-            return data;
-        }
-        private static void CheckResponse(HttpResponseMessage response)
+            AdobeSignBaseUriInfo result;
+            try
+            {
+                HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, BaseUrisUrl);
+                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
+                requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")); 
+                HttpResponseMessage httpResponseMessage = SendAsync(requestMessage);
+                result = ParseResponse<AdobeSignBaseUriInfo>(httpResponseMessage);
+            }
+            catch (Exception ex)
+            {
+                throw new LoggedException("Cannot extract AdobeSign's base URL", ex);
+            }
+            if (result == null || string.IsNullOrWhiteSpace(result.apiAccessPoint))
+                throw new LoggedException($"No valid response from AdobeSign API, try refreshing your OAuth Token");
+            return result.apiAccessPoint.TrimEnd('/');
+        } 
+
+        private static TR ParseResponse<TR>(HttpResponseMessage response) where TR : new()
         {
             if (!response.IsSuccessStatusCode)
-            {
                 throw new AdobeSignException(response.ReasonPhrase, response.StatusCode);
-            };
-        }
-
-        private static R ParseResponse<R>(HttpResponseMessage response) where R : new()
-        {
-            CheckResponse(response);
             var responseString = response.Content.ReadAsStringAsync().Result;
-
-            var result = JsonConvert.DeserializeObject<R>(responseString, jsonSettings);
-
-            return result;
+            return JsonConvert.DeserializeObject<TR>(responseString, JsonSettings);
         }
 
-
-        private static R GetRequest<R>(AdobeSignConnection connection, string requestUri) where R : new()
+        private static HttpResponseMessage SendAsync(HttpRequestMessage requestMessage)
         {
-            HttpResponseMessage response = GetJsonClient(connection).GetAsync(requestUri).Result;
-            return ParseResponse<R>(response);
+            HttpResponseMessage httpResponseMessage = HttpClients
+                .GetHttpClient(HttpClientAuthType.Normal)
+                .SendAsync(requestMessage).Result;
+            if (!httpResponseMessage.IsSuccessStatusCode)
+                throw new AdobeSignException(httpResponseMessage.ReasonPhrase, httpResponseMessage.StatusCode);
+            return httpResponseMessage;
         }
 
-        private static R PostRequest<R, T>(AdobeSignConnection connection, string requestUri, T content) where R : new()
+        private static HttpRequestMessage BuildHttpGetRequestMessage(
+            OAuthToken token,
+            string url,
+            string mediaType)
         {
-            string data = ParseRequestContent(content);
-            var contentStr = new StringContent(data, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = GetJsonClient(connection).PostAsync(requestUri, contentStr).Result;
-            return ParseResponse<R>(response);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
+            requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
+            return requestMessage;
         }
-
+        
+        private static HttpRequestMessage BuildHttpPostRequestMessage(
+            OAuthToken token,
+            string url)
+        {
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.TokenData);
+            requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            return requestMessage;
+        } 
     }
 }
