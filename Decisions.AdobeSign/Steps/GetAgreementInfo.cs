@@ -1,44 +1,43 @@
 ﻿using Decisions.AdobeSign.Utility;
+using Decisions.OAuth;
 using DecisionsFramework.Design.ConfigurationStorage.Attributes;
 using DecisionsFramework.Design.Flow;
 using DecisionsFramework.Design.Flow.Mapping;
 using DecisionsFramework.Design.Properties;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DecisionsFramework.ServiceLayer.Services.ContextData;
 
 namespace Decisions.AdobeSign.Steps
 {
-    [AutoRegisterStep("Get Agreement Info", adobeSignCategory)]
+    [AutoRegisterStep("Get Agreement Info", STEP_PARAMS_CATEGORY)]
     [Writable]
     public class GetAgreementInfo : AbstractStep
     {
+        private const string RESULT_PATH = "Result";
+        private const string INPUT_NAME_DATA = "Agreement Id";
+        private const string OUTPUT_NAME_DATA = "Agreement Info";
+        
         [PropertyHidden]
-        public override DataDescription[] InputData
+        public override DataDescription[] InputData => new DataDescription[]
         {
-            get
-            {
-                var data = new DataDescription[] { new DataDescription(typeof(string), AbstractStep.AgreementIdLabel), };
-                return base.InputData.Concat(data).ToArray();
-            }
-        }
+            new (typeof(string), INPUT_NAME_DATA)
+        };
 
-        public override OutcomeScenarioData[] OutcomeScenarios
+        protected override OutcomeScenarioData[] GetOutcomeScenarios()
         {
-            get
+            return new OutcomeScenarioData[]
             {
-                var data = new OutcomeScenarioData[] { new OutcomeScenarioData(resultOutcomeLabel, new DataDescription(typeof(AdobeSignAgreementInfo), AbstractStep.AgreementInfoLabel)) };
-                return base.OutcomeScenarios.Concat(data).ToArray();
-            }
-        }
+                new (RESULT_PATH, new DataDescription(typeof(AdobeSignAgreementInfo), OUTPUT_NAME_DATA))
+            };
+        }  
 
-        protected override Object ExecuteStep(AdobeSignConnection conn, StepStartData data)
+        protected override ResultData ExecuteStep(StepStartData data, OAuthToken token)
         {
-            string  agreementId = (string)data.Data[AbstractStep.AgreementIdLabel];
-            AdobeSignAgreementInfo res = AdobeSignApi.GetAgreementInfo(conn, agreementId);
-            return res;
+            var info = AdobeSignApi.GetAgreementInfo(
+                token, 
+                agreementId: (string)data.Data[INPUT_NAME_DATA]);
+            return new ResultData(
+                RESULT_PATH, 
+                new[] { new DataPair(OUTPUT_NAME_DATA, info) });
         }
     }
 }

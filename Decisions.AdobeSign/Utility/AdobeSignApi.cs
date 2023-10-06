@@ -1,61 +1,111 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Mime;
+using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
+using Decisions.OAuth;
+using DecisionsFramework;
+using Newtonsoft.Json;
 
 namespace Decisions.AdobeSign.Utility
 {
     public static partial class AdobeSignApi
     {
-
-        public static string CreateTransientDocument(AdobeSignConnection connection, byte[] fileData, string fileName, string mimeType = "application/PDF")
+        private const string URI_API_PART = "/api/rest/v6/";
+        
+        public static string CreateTransientDocument(
+            OAuthToken token, 
+            byte[] fileData, 
+            string fileName, 
+            string mimeType = "application/PDF")
         {
-            HttpClient httpClient = GetClient(connection);
-
-            var content = new MultipartFormDataContent();
+            ThrowIfNullOrEmpty(token);
+            ThrowIfNullOrEmpty(fileData);
+            ThrowIfNullOrEmpty(fileName);
+            ThrowIfNullOrEmpty(mimeType);
+            
+            HttpRequestMessage requestMessage = BuildHttpPostRequestMessage(
+                token,
+                url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}transientDocuments");
+            MultipartFormDataContent content = new MultipartFormDataContent();
             content.Add(new StringContent(mimeType), "Mime-Type");
             content.Add(new StringContent(fileName), "File-Name");
             content.Add(new ByteArrayContent(fileData),"File", fileName);
+            requestMessage.Content = content;
 
-            HttpResponseMessage response = httpClient.PostAsync("transientDocuments", content).Result;
-
-            TransientDocumentResponse res = ParseResponse<TransientDocumentResponse>(response);
-            return res.TransientDocumentId;
+            HttpResponseMessage httpResponse = SendAsync(requestMessage);
+            var response = ParseResponse<TransientDocumentResponse>(httpResponse);
+            return response.TransientDocumentId;
         }
 
-        public static string CreateAgreement(AdobeSignConnection connection, AdobeSignAgreementInfo agreementInfo)
+        public static string CreateAgreement(
+            OAuthToken token, 
+            AdobeSignAgreementInfo agreementInfo)
         {
-            AdobeSignAgreementCreationResponse res = PostRequest<AdobeSignAgreementCreationResponse, AdobeSignAgreementInfo>(connection, "agreements", agreementInfo);
-            return res.Id;
+            ThrowIfNullOrEmpty(token);
+            ThrowIfNullOrEmpty(agreementInfo);
+ 
+            HttpRequestMessage requestMessage = BuildHttpPostRequestMessage(
+                token,
+                url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}agreements");
+            requestMessage.Content = new StringContent(
+                JsonConvert.SerializeObject(agreementInfo, Formatting.None, JsonSettings),
+                Encoding.UTF8,
+                "application/json");
+            
+            HttpResponseMessage httpResponse = SendAsync(requestMessage);
+            return ParseResponse<AdobeSignAgreementCreationResponse>(httpResponse).Id;
         }
 
-        public static AdobeSignAgreementInfo GetAgreementInfo(AdobeSignConnection connection, string agreementId)
+        public static AdobeSignAgreementInfo GetAgreementInfo(
+            OAuthToken token,
+            string agreementId)
         {
-            if (string.IsNullOrEmpty(agreementId))
-                throw new ArgumentNullException("agreementId cannot be null nor empty");
+            ThrowIfNullOrEmpty(token);
+            ThrowIfNullOrEmpty(agreementId);
 
-            AdobeSignAgreementInfo res = GetRequest<AdobeSignAgreementInfo>(connection, $"agreements/{agreementId}");
-            return res;
+            HttpRequestMessage requestMessage = BuildHttpGetRequestMessage(
+                token,
+                url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}agreements/{agreementId}",
+                mediaType: "application/json");
+
+            HttpResponseMessage httpResponse = SendAsync(requestMessage);
+            var response = ParseResponse<AdobeSignAgreementInfo>(httpResponse);
+            return response;
         }
-
-        public static void GetTransientDocument(AdobeSignConnection connection, string agreementId, string filePath)
+        
+        public static void GetTransientDocument(
+            OAuthToken token,
+            string agreementId, 
+            string filePath)
         {
-            if (string.IsNullOrEmpty(agreementId))
-                throw new ArgumentNullException("agreementId cannot be null nor empty");
-            if (string.IsNullOrEmpty(filePath))
-                throw new ArgumentNullException("filePath cannot be null nor empty");
+            ThrowIfNullOrEmpty(token);
+            ThrowIfNullOrEmpty(agreementId);
+            ThrowIfNullOrEmpty(filePath);
 
-            HttpClient httpClient = GetClient(connection);
-            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/PDF");
-            HttpResponseMessage response = httpClient.GetAsync($"agreements/{agreementId}/combinedDocument").Result;
-            CheckResponse(response);
-
-            byte[] bytes = response.Content.ReadAsByteArrayAsync().Result;
-            System.IO.File.WriteAllBytes(filePath, bytes);
+            try
+            {
+                HttpRequestMessage requestMessage = BuildHttpGetRequestMessage(
+                    token, 
+                    url: $"{FetchBaseUriFromWeb(token)}{URI_API_PART}agreements/{agreementId}/combinedDocument",
+                    mediaType: "application/PDF");
+                HttpContent httpContent = SendAsync(requestMessage).Content;
+                byte[] bytes = httpContent.ReadAsByteArrayAsync().Result;
+                System.IO.File.WriteAllBytes(filePath, bytes);
+            }
+            catch (Exception ex)
+            {
+                throw new LoggedException($"Could not write resulting document to '{filePath}'", ex);
+            }
         }
-
+        
+        public static void ThrowIfNullOrEmpty(
+            object value, 
+            [CallerArgumentExpression("value")] string argName = null)
+        {
+            if (value is string str && string.IsNullOrWhiteSpace(str))
+                throw new ArgumentNullException($"{argName} cannot be null or empty");
+            if (value == null)
+                throw new ArgumentNullException($"{argName} is required");
+        }
     }
 }
