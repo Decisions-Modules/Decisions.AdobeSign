@@ -9,11 +9,12 @@ using DecisionsFramework.Design.Properties.Attributes;
 using DecisionsFramework.ServiceLayer.Services.ContextData;
 using System;
 using System.Collections.Generic;
+using DecisionsFramework.Design.Flow.CoreSteps;
 
 namespace Decisions.AdobeSign
 {
     [Writable]
-    public abstract class AbstractStep : ISyncStep, IDataConsumer, IValidationSource
+    public abstract class AbstractStep : BaseFlowAwareStep, ISyncStep, IDataConsumer, IValidationSource
     {
         protected const string STEP_PARAMS_CATEGORY = "Integration/AdobeSign";
         private const string ERROR_PATH = "Error";
@@ -24,7 +25,7 @@ namespace Decisions.AdobeSign
 
         protected abstract OutcomeScenarioData[] GetOutcomeScenarios();
 
-        public OutcomeScenarioData[] OutcomeScenarios 
+        public override OutcomeScenarioData[] OutcomeScenarios 
         {
             get
             {
